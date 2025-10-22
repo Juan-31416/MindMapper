@@ -1,0 +1,140 @@
+/* Canvas Container */
+.canvas-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-primary);
+  touch-action: none; /* Prevent default touch behaviors to allow custom handling */
+}
+
+.canvas-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  font-size: 18px;
+}
+
+/* SVG */
+.canvas-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none; /* Prevent default touch behaviors */
+}
+
+/* Connections */
+.connection-path {
+  stroke: var(--border-color);
+  stroke-width: 2;
+  fill: none;
+  transition: stroke 0.2s;
+}
+
+.connection-path:hover {
+  stroke: var(--text-tertiary);
+  stroke-width: 3;
+}
+
+/* Nodes */
+.mind-node {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.mind-node:hover .node-bg {
+  filter: brightness(1.1);
+}
+
+.mind-node.selected .node-bg {
+  filter: brightness(1.2);
+}
+
+.mind-node.drop-target .node-bg {
+  stroke: #10b981 !important;
+  stroke-width: 4 !important;
+  stroke-dasharray: 8;
+  animation: dash 1s linear infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+
+.node-bg {
+  transition: all 0.2s;
+}
+
+.node-text {
+  font-size: 14px;
+  font-weight: 500;
+  user-select: none;
+  pointer-events: none;
+}
+
+.node-text-input {
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid #60a5fa;
+  border-radius: 4px;
+  color: #ffffff;
+  padding: 4px 8px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+}
+
+/* Status Indicator */
+.status-indicator {
+  transition: all 0.2s;
+}
+
+/* Collapse Toggle */
+.collapse-toggle {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.collapse-toggle:hover circle {
+  fill: #6b7280;
+}
+
+.collapse-toggle:active {
+  transform: scale(0.9);
+}
+
+/* Fit to Screen Button */
+.fit-to-screen-btn {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--bg-tertiary);
+  border-radius: 8px;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+.fit-to-screen-btn:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
+  transform: scale(1.05);
+}
+
+.fit-to-screen-btn:active {
+  transform: scale(0.95);
+}
