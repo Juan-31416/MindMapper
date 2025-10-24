@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { MindMap, MindMapNode, NodeStyle, ViewportState, DEFAULT_NODE_STYLE } from '../types/mindmap';
 import { serializeToJSON, preparePDFExport, getExportBaseName } from '../utils/exporters';
 import { importFromContent } from '../utils/importers';
+import { calculateLayout } from '../utils/layout';
 
 interface MindMapStore {
   // Current mind map
@@ -43,6 +44,7 @@ interface MindMapStore {
   // Viewport
   setViewport: (viewport: Partial<ViewportState>) => void;
   resetViewport: () => void;
+  focusOnNode: (nodeId: string) => void;
   
   // History
   undo: () => void;
@@ -146,7 +148,7 @@ export const useMindMapStore = create<MindMapStore>((set, get) => ({
         // Update order of subsequent siblings
         parentNode.children.forEach(childId => {
           const child = newMap.nodes[childId];
-          if (child.order > currentNode.order) {
+          if (child && child.order > currentNode.order) {
             child.order++;
           }
         });
@@ -177,6 +179,11 @@ export const useMindMapStore = create<MindMapStore>((set, get) => ({
       historyIndex: newHistory.length - 1,
       isDirty: true,
     });
+    
+    // Focus on the new node after a brief delay to ensure layout is updated
+    setTimeout(() => {
+      get().focusOnNode(newNode.id);
+    }, 50);
   },
   
   deleteNode: (nodeId: string) => {
@@ -313,6 +320,11 @@ export const useMindMapStore = create<MindMapStore>((set, get) => ({
     
     const newMap = JSON.parse(JSON.stringify(currentMap)) as MindMap;
     if (newMap.nodes[nodeId]) {
+      // Ensure collapsed property exists and is boolean
+      if (typeof newMap.nodes[nodeId].collapsed !== 'boolean') {
+        newMap.nodes[nodeId].collapsed = false;
+      }
+      
       newMap.nodes[nodeId].collapsed = !newMap.nodes[nodeId].collapsed;
       newMap.updatedAt = Date.now();
       
@@ -339,6 +351,34 @@ export const useMindMapStore = create<MindMapStore>((set, get) => ({
   
   resetViewport: () => {
     set({ viewport: { zoom: 1, panX: 0, panY: 0 } });
+  },
+  
+  focusOnNode: (nodeId: string) => {
+    const { currentMap, viewport } = get();
+    if (!currentMap) return;
+    
+    // Calculate layout to get node position
+    const layout = calculateLayout(currentMap.nodes, currentMap.rootNodeId);
+    const nodePosition = layout.nodePositions[nodeId];
+    
+    if (!nodePosition) return;
+    
+    // Calculate the viewport adjustment to center the node
+    // We'll use a reasonable zoom level and center the node
+    const targetZoom = Math.min(viewport.zoom, 1.2); // Don't zoom in too much
+    const centerX = 400; // Approximate center of typical screen
+    const centerY = 300;
+    
+    const newPanX = centerX - nodePosition.x * targetZoom;
+    const newPanY = centerY - nodePosition.y * targetZoom;
+    
+    set({
+      viewport: {
+        zoom: targetZoom,
+        panX: newPanX,
+        panY: newPanY,
+      }
+    });
   },
   
   undo: () => {

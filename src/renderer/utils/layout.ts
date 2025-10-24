@@ -48,7 +48,8 @@ export const calculateLayout = (
     g.setNode(nodeId, { width: NODE_WIDTH, height: NODE_HEIGHT });
     
     // If not collapsed, process children
-    if (!node.collapsed && node.children.length > 0) {
+    const isCollapsed = node.collapsed === true; // Handle undefined as false
+    if (!isCollapsed && node.children.length > 0) {
       node.children
         .sort((a, b) => (nodes[a]?.order || 0) - (nodes[b]?.order || 0))
         .forEach(childId => {

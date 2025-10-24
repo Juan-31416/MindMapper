@@ -17,7 +17,6 @@ const Toolbar: React.FC = () => {
     canUndo,
     canRedo,
     setViewport,
-    resetViewport,
     viewport,
   } = useMindMapStore();
   
@@ -29,7 +28,24 @@ const Toolbar: React.FC = () => {
     setTheme(newTheme);
   };
 
-  const handleTemplateSelect = (templateId: string) => {
+  const handleTemplateSelect = async (templateId: string) => {
+    // Check for unsaved changes
+    if (isDirty) {
+      const result = await window.electronAPI.dialog.showMessage({
+        type: 'question',
+        title: 'Unsaved Changes',
+        message: 'You have unsaved changes. Do you want to continue?',
+        buttons: ['Cancel', 'Continue'],
+        defaultId: 0,
+        cancelId: 0,
+      });
+      
+      if (result.response === 0) {
+        setShowTemplates(false);
+        return;
+      }
+    }
+    
     const templates = getAvailableTemplates();
     const template = templates.find(t => t.id === templateId);
     if (template) {
@@ -143,13 +159,6 @@ const Toolbar: React.FC = () => {
             title="Zoom In"
           >
             <LucideIcons.ZoomIn size={20} />
-          </button>
-          <button
-            className="toolbar-btn"
-            onClick={resetViewport}
-            title="Reset View"
-          >
-            <LucideIcons.Maximize2 size={20} />
           </button>
         </div>
       </div>

@@ -48,7 +48,12 @@ const NodeEditor: React.FC = () => {
   };
 
   const handleStatusChange = (status: 'pending' | 'in-progress' | 'done') => {
-    updateNodeStyle(selectedNodeId, { status });
+    // If clicking the same status, clear it (set to undefined)
+    if (selectedNode.style.status === status) {
+      updateNodeStyle(selectedNodeId, { status: undefined });
+    } else {
+      updateNodeStyle(selectedNodeId, { status });
+    }
   };
 
   const handleCreateChild = () => {

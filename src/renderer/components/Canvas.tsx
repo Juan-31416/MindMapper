@@ -286,7 +286,7 @@ const Canvas: React.FC = () => {
               fontSize={12}
               fontWeight="bold"
             >
-              {node.collapsed ? '+' : '−'}
+              {node.collapsed ? '+' : '-'}
             </text>
           </g>
         )}
