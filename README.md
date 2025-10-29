@@ -146,18 +146,23 @@ For the complete data schema, see [DATA_SCHEMA.md](./DATA_SCHEMA.md).
 ## 🗺️ Roadmap
 
 ### Phase 2 (Planned)
-- Real-time collaboration
-- Cloud storage integration
-- Advanced export options (PNG, SVG, DOCX)
-- Node attachments (images, files, links)
-- Search and filter functionality
+- Radial view
+- Advanced fuzzy search
+- More templates (SWOT, Roadmap)
+- Local AES-GCM encryption
+- Automatic backups with versioning
 
-### Phase 3 (Future)
-- Mobile applications (iOS/Android)
-- Plugin system for extensions
-- AI-powered suggestions
-- Presentation mode
-- Version control integration
+### Phase 3 (~6 months)
+- Additional views (organigram, fishbone, concept map)
+- More I/O formats (OPML, FreeMind .mm, PNG, SVG export)
+- Minimap and focus mode
+
+### Phase 4 (~9-12 months)
+- Full plugin system
+- Optional Java backend (Lucene, advanced PDF)
+- Full ARIA accessibility
+- AI assistant
+- Anki card creation
 
 ---
 
@@ -191,9 +196,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 If you encounter any issues or have questions:
 
-- 🐛 [Report a bug](https://github.com/yourusername/mindmapper/issues)
-- 💡 [Request a feature](https://github.com/yourusername/mindmapper/issues)
-- 📧 [Contact us](mailto:support@mindmapper.com)
+- 🐛 [Report a bug](https://github.com/Juan-31416/MindMapper/issues)
+- 💡 [Request a feature](https://github.com/Juan-31416/MindMapper/issues)
+- 📧 [Contact us](mailto:jp.martintejeiro@qelronzal.com)
 
 ---
 
