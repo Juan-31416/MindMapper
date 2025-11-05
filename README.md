@@ -177,6 +177,11 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 5. Open a Pull Request
 
 ---
+## 💰 Help the development
+
+https://ko-fi.com/mindmapper
+
+---
 
 ## 📄 License
 
