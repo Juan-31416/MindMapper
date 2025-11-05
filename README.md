@@ -5,6 +5,8 @@
   <p>Built with Electron, React, and TypeScript</p>
 </div>
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/L3L01NYP70)
+
 ---
 
 ## ✨ Features
