@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Toolbar from './components/Toolbar';
 import Canvas from './components/Canvas';
 import NodeEditor from './components/NodeEditor';
-import { useMindMapStore } from './store/mindMapStore';
+import { useMindMapStore } from './store/mindMapStore.js';
 import { initializeTheme, toggleTheme as utilToggleTheme } from './utils/theme';
 import { createBlankTemplate } from './templates/brainstorming';
 import './styles/App.css';

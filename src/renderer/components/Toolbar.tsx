@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import * as LucideIcons from 'lucide-react';
-import { useMindMapStore } from '../store/mindMapStore';
+import { useMindMapStore } from '../store/mindMapStore.js';
 import { toggleTheme, getCurrentTheme } from '../utils/theme';
 import { getAvailableTemplates } from '../templates/brainstorming';
 import '../styles/Toolbar.css';

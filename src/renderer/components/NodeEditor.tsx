@@ -1,6 +1,6 @@
 import React from 'react';
 import * as LucideIcons from 'lucide-react';
-import { useMindMapStore } from '../store/mindMapStore';
+import { useMindMapStore } from '../store/mindMapStore.js';
 import { DEFAULT_COLORS } from '../types/mindmap';
 import '../styles/NodeEditor.css';
 
