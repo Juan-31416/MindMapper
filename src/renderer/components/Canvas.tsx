@@ -2,6 +2,8 @@ import React, { useRef, useEffect, useState } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { useMindMapStore } from '../store/mindMapStore';
 import { calculateLayout, calculateCurvedPath, NODE_WIDTH, NODE_HEIGHT } from '../utils/layout';
+import { createLayout, buildTreeFromNodes } from '../utils/index';
+import { LayoutType, LayoutResults } from '../types/layout';
 import { MindMapNode } from '../types/mindmap';
 import '../styles/Canvas.css';
 
@@ -17,6 +19,7 @@ const Canvas: React.FC = () => {
     toggleCollapse,
     setViewport,
     moveNode,
+    layout,
   } = useMindMapStore();
 
   const svgRef = useRef<SVGSVGElement>(null);
@@ -26,11 +29,57 @@ const Canvas: React.FC = () => {
   const [draggedNode, setDraggedNode] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [prevPositions, setPrevPositions] = useState<Record<string, { x: number, y:number }>>({});
+  const [layoutResult, setLayoutResult] = useState<layoutResult | null>(null);
 
-  // Calculate layout
-  const layout = currentMap
-    ? calculateLayout(currentMap.nodes, currentMap.rootNodeId)
-    : null;
+  // Calculate layout with animation support
+  useEffect(() => {
+    if (!currentMap || currentMap.rootNodeId) return;
+
+    try {
+      // Save previous positons for animation
+      const currentLayout = calculateLayout(currentMap.nodes, currentMap.rootNodeId);
+
+      if (currentLayout && layoutResult) {
+        const positions: Record<string, { x: number, y: number }> = {};
+
+        Object.entries(layoutResult.nodePositions || currentLayout.nodePositions).forEach(([id, pos]) => {
+          positons[id] = { x: pos.x, y: pos.y };
+        });
+        setPrevPositions(positions);
+        setIsAnimating(true);
+      }
+
+      // Build tree and create layout
+      const tree = buildTreeFromNodes(Object.values(currentMap.nodes), currentMap.rootNodeId);
+      const result = createLayout(tree, {
+        type: layout || 'hhierarchical',
+        nodeWidth: NODE_WIDTH,
+        nodeHeight: NODE_HEIGHT,
+        
+        // Radial config
+        r0: 100,
+        levelGap: 150,
+        angleStart: -Math.PI / 2,
+        
+        // Hierarchical config
+        rankSep: 100,
+        nodeSep: 50,
+      });
+
+      setLayoutResult(result);
+
+      // Finish animation after 500 ms
+      setTimeout(() => setIsAnimating(false), 500);
+    } catch (error) {
+      console.error('Error calculating layout: ', error);
+
+      //Fallback to basic layout
+      const fallbackLayout = calculateLayout(currentMap.nodes, currentMap.rootNodeId);
+      setLayoutResult(fallbackLayout as any);
+    }
+  }, [currentMap?.nodes, currentMap?.rootNodeId, layout]);
 
 
   // Handle pan start
@@ -59,10 +108,13 @@ const Canvas: React.FC = () => {
 
         // Check for drop targets
         let newDropTarget: string | null = null;
-        Object.entries(layout.nodePositions).forEach(([nodeId, pos]) => {
+        const positions = layoutResult.nodePositions || LayoutResult.nodes;
+        Object.entries(positions).forEach(([nodeId, pos]) => {
           if (nodeId === draggedNode) return;
-          const dx = x - pos.x;
-          const dy = y - pos.y;
+          const nodeX = (pos as any).x || pos.x;
+          const nodeY = (pos as any).y || pos.y;
+          const dx = x - nodeX;
+          const dy = y - nodeY;
           const distance = Math.sqrt(dx * dx + dy * dy);
           if (distance < 100) {
             newDropTarget = nodeId;
@@ -95,7 +147,12 @@ const Canvas: React.FC = () => {
     if (!layout || !containerRef.current) return;
 
     const container = containerRef.current.getBoundingClientRect();
-    const { bounds } = layout;
+    const bounds = LayoutResult.bounds || {
+      minX: 0,
+      minY: 0,
+      maxX: layoutResult.size?.width || 800,
+      maxY: layoutResult.size?.height || 600,
+    };
 
     const contentWidth = bounds.maxX - bounds.minX;
     const contentHeight = bounds.maxY - bounds.minY;
@@ -128,7 +185,7 @@ const Canvas: React.FC = () => {
 
     const handleWheelNative = (e: WheelEvent) => {
       e.preventDefault();
-      const delta = e.deltaY * -0.001;
+      const delta = e.deltaY > 0 ? 0.9 : 1.1;
       const newZoom = Math.min(Math.max(0.1, viewport.zoom + delta), 3);
       setViewport({ zoom: newZoom });
     };
@@ -141,17 +198,23 @@ const Canvas: React.FC = () => {
     };
   }, [viewport.zoom, setViewport]);
 
-  if (!currentMap || !layout) {
-    return (
-      <div className="canvas-empty">
-        <p>No mind map loaded</p>
-      </div>
-    );
-  }
 
   const renderNode = (nodeId: string, node: MindMapNode) => {
-    const position = layout.nodePositions[nodeId];
+    const positions = layoutResult?.nodePositions || layoutResult?.nodes;
+    if (!positions) return null;
+
+    const position = positions[nodeId];
     if (!position) return null;
+
+    // Get position with animation support
+    let x = (position as any).x || position.x;
+    let y = (position as any).y || position.y;
+
+    if (isAnimating && prevPositions[nodeId]) {
+      const prev = prevPositions[nodeId];
+      x = prev.x + (x - prev.x) * 0.5;
+      y = prev.y + (y - prev.y) * 0.5;
+    }
 
     const isSelected = selectedNodeId === nodeId;
     const isEditing = editingNodeId === nodeId;
@@ -166,8 +229,8 @@ const Canvas: React.FC = () => {
     return (
       <g
         key={nodeId}
-        transform={`translate(${position.x}, ${position.y})`}
-        className={`mind-node ${isSelected ? 'selected' : ''} ${isDropTarget ? 'drop-target' : ''}`}
+        transform={`translate(${x}, ${y})`}
+        className={`mind-node ${isSelected ? 'selected' : ''} ${isDropTarget ? 'drop-target' : ''} ${isAnimating ? 'animating' : ''}`}
         onClick={(e) => {
           e.stopPropagation();
           selectNode(nodeId);
@@ -205,7 +268,11 @@ const Canvas: React.FC = () => {
 
         {/* Icon */}
         <g transform={`translate(${-NODE_WIDTH / 2 + 15}, 0)`}>
-          <IconComponent size={20} color={node.style.textColor} style={{ transform: 'translate(-10px, -10px)' }} />
+          <IconComponent 
+            size={20} 
+            color={node.style.textColor} 
+            style={{ transform: 'translate(-10px, -10px)' }} 
+          />
         </g>
 
         {/* Text */}
@@ -294,33 +361,66 @@ const Canvas: React.FC = () => {
     );
   };
 
+  if (!currentMap || !layoutResult) {
+    return (
+      <div className="canvas-empty">
+        <div className="spinner">
+          <p>Calculando layout...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Get connections from layout
+  const connections = layoutResult.connections || layoutResult.edges || [];
+
   return (
     <div 
       ref={containerRef} 
       className="canvas-container"
       onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
     >
       <svg
         ref={svgRef}
-        className="canvas-svg"
+        className={`canvas-svg ${isAnimating ? 'animating' : ''}`}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
       >
+        <defs>
+          <maker
+            id="arrowhead"
+            makerWidth="10"
+            makerHeight="10"
+            refX="9"
+            refY="3"
+            orient="auto"
+          >
+            <poligon
+              points="0 0, 10 3, 0 6"
+              fill="#6B7280"
+            />
+          </maker>
+        </defs>
+
         <g transform={`translate(${viewport.panX}, ${viewport.panY}) scale(${viewport.zoom})`}>
           {/* Connections */}
           <g className="connections">
-            {layout.connections.map((conn, i) => {
-              const path = calculateCurvedPath(conn.fromPos, conn.toPos);
+            {layout.connections.map((conn: any, i: number) => {
+              const path = conn.path || calculateCurvedPath(
+                conn.fromPos || { x: conn.from?.x || 0, y: conn.from?.y || 0 },
+                conn.toPos || { x: conn.to?.x || 0, y: conn.to?.y || 0 });
               return (
                 <path
-                  key={`${conn.fromId}-${conn.toId}-${i}`}
+                  key={`${conn.fromId || conn.from}-${conn.toId || conn.to}-${i}`}
                   d={path}
                   stroke="#6B7280"
                   strokeWidth={2}
                   fill="none"
-                  className="connection-path"
+                  className={'connection-path edge--${layout}'}
+                  markerEnd='url(#arrowhead)'
                 />
               );
             })}
@@ -328,18 +428,35 @@ const Canvas: React.FC = () => {
 
           {/* Nodes */}
           <g className="nodes">
-            {Object.entries(layout.nodePositions).map(([nodeId]) => {
-              const node = currentMap.nodes[nodeId];
-              return node ? renderNode(nodeId, node) : null;
+            {Object.entries(currentMap.nodes).map(([nodeId, node]) => {
+              return renderNode(nodeId, node);
             })}
           </g>
         </g>
       </svg>
 
-      {/* Fit to screen button */}
-      <button className="fit-to-screen-btn" onClick={fitToScreen} title="Fit to Screen">
-        <LucideIcons.Maximize2 size={20} />
-      </button>
+      {/* Controls */}
+      <div className="canvas-controls">
+        <button
+          className="fit-to-screen-btn"
+          onClick={fitToScreen}
+          title="Fit to Screen"
+        >
+          <LucideIcons.Maximize2 size={20} />
+        </button>
+
+        <button 
+          className="reset-view-btn" 
+          onClick={resetView} 
+          title="Resetear vista"
+        >
+          <LucideIcons.RotateCcw size={20} />
+        </button>
+        
+        <div className="zoom-indicator">
+          {Math.round(viewport.zoom * 100)}%
+        </div>
+      </div>
     </div>
   );
 };

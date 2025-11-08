@@ -1,0 +1,33 @@
+/* src/renderer/styles/edges.css */
+.edge {
+    transition: stroke 0.2s ease, stroke-width 0.2s ease;
+    cursor: pointer;
+  }
+  
+  .edge:hover {
+    stroke: var(--primary-color);
+    stroke-width: 3;
+  }
+  
+  .edge--hierarchical {
+    /* Estilo específico para layout jerárquico */
+  }
+  
+  .edge--radial {
+    /* Curvas más suaves para layout radial */
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  
+  .edges {
+    pointer-events: stroke;
+  }
+  
+  /* Animación suave al cambiar de layout */
+  .graph-canvas__svg.animating .edge {
+    transition: d 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .graph-canvas__svg.animating .node {
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }

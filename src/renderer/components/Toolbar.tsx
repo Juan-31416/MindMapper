@@ -3,6 +3,7 @@ import * as LucideIcons from 'lucide-react';
 import { useMindMapStore } from '../store/mindMapStore';
 import { toggleTheme, getCurrentTheme } from '../utils/theme';
 import { getAvailableTemplates } from '../templates/brainstorming';
+import { LayoutToggle } from './Toolbar/LayoutToggle';
 import '../styles/Toolbar.css';
 
 const Toolbar: React.FC = () => {
@@ -19,6 +20,10 @@ const Toolbar: React.FC = () => {
     setViewport,
     viewport,
   } = useMindMapStore();
+
+  // Layout state
+  const layout = useMindMapStore((state) => state.ui?.layout || state.layout);
+  const setLayout = useMindMapStore((state) => state.ui?.setLayout || state.setLayout);
   
   const [theme, setTheme] = useState(getCurrentTheme());
   const [showTemplates, setShowTemplates] = useState(false);
@@ -66,6 +71,7 @@ const Toolbar: React.FC = () => {
   return (
     <div className="toolbar">
       <div className="toolbar-left">
+        {/* File Operations */}
         <div className="toolbar-section" style={{ position: 'relative' }}>
           <button
             className="toolbar-btn primary"
@@ -76,22 +82,11 @@ const Toolbar: React.FC = () => {
             <span>New</span>
           </button>
           {showTemplates && (
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '6px',
-              marginTop: '4px',
-              minWidth: '200px',
-              boxShadow: '0 4px 12px var(--shadow)',
-              zIndex: 1000,
-            }}>
+            <div className="toolbar-dropdown">
               {getAvailableTemplates().map(template => (
                 <button
                   key={template.id}
-                  className="toolbar-btn"
+                  className="toolbar-dropdown-item"
                   onClick={() => handleTemplateSelect(template.id)}
                   style={{
                     width: '100%',
@@ -123,6 +118,7 @@ const Toolbar: React.FC = () => {
 
         <div className="toolbar-divider"></div>
 
+        {/* Undo/Redo */}
         <div className="toolbar-section">
           <button
             className="toolbar-btn"
@@ -144,6 +140,44 @@ const Toolbar: React.FC = () => {
 
         <div className="toolbar-divider"></div>
 
+        {/** Layout Toogle - Integrated */}
+        <div className="toolbar-section layout-toogle">
+          <button
+            className={`toolbar-btn layout-btn ${layout === 'hierarchical' ? 'active' : ''}`}
+            onClick={() => handleLayoutChange('hierarchical')}
+            title="Vista Jerárquica"
+            aria-label="Vista Jerárquica"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <rect x="7" y="2" width="6" height="3" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+              <rect x="2" y="9" width="6" height="3" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+              <rect x="12" y="9" width="6" height="3" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M10 5V9M5 9V7.5M15 9V7.5M10 7.5H5M10 7.5H15" stroke="currentColor" strokeWidth="1.5"/>
+            </svg>
+            <span>Jerárquica</span>
+          </button>
+
+          <button
+            className={`toolbar-btn layout-btn ${layout === 'radial' ? 'active' : ''}`}
+            onClick={() => handleLayoutChange('radial')}
+            title="Vista Radial"
+            aria-label="Vista Radial"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <circle cx="10" cy="10" r="2" stroke="currentColor" strokeWidth="1.5"/>
+              <circle cx="10" cy="3" r="1.5" stroke="currentColor" strokeWidth="1.5"/>
+              <circle cx="17" cy="10" r="1.5" stroke="currentColor" strokeWidth="1.5"/>
+              <circle cx="10" cy="17" r="1.5" stroke="currentColor" strokeWidth="1.5"/>
+              <circle cx="3" cy="10" r="1.5" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M10 5V8M12 10H15.5M10 12V15.5M8 10H4.5" stroke="currentColor" strokeWidth="1.5"/>
+            </svg>
+            <span>Radial</span>
+          </button>
+        </div>
+
+        <div className="toolbar-divider"></div>
+
+        {/** Zoom Controls */}
         <div className="toolbar-section">
           <button
             className="toolbar-btn"
@@ -163,6 +197,7 @@ const Toolbar: React.FC = () => {
         </div>
       </div>
 
+      {/** Center - Map Name */}
       <div className="toolbar-center">
         {currentMap && (
           <div className="map-name">
@@ -175,6 +210,7 @@ const Toolbar: React.FC = () => {
         )}
       </div>
 
+      {/** Right - Theme Toogle */}
       <div className="toolbar-right">
         <div className="toolbar-section">
           <button
