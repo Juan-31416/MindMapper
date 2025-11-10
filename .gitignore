@@ -98,3 +98,6 @@ temp/
 
 # Electron
 out/
+
+# Tests
+tests/
