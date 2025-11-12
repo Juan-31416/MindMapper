@@ -1,5 +1,9 @@
 // Core types for MindMapper application
 
+/**************************************
+ *           NODE APPEARANCE
+ ************************************** */
+
 export type NodeStatus = 'pending' | 'in-progress' | 'done';
 
 export interface NodeStyle {
@@ -15,10 +19,26 @@ export interface NodeStyle {
   status?: NodeStatus;
 }
 
+/**************************************
+ *       GEOMETRY & POSITION
+ ************************************** */
+
 export interface Position {
   x: number;
   y: number;
 }
+
+// Connection between nodes for rendering
+export interface Connection {
+  fromId: string;
+  toId: string;
+  fromPos: Position;
+  toPos: Position;
+}
+
+/**************************************
+ *        MIND MAP CORE MODEL
+ ************************************** */
 
 export interface MindMapNode {
   id: string;
@@ -40,7 +60,10 @@ export interface MindMap {
   updatedAt: number;
 }
 
-// Actions
+/**************************************
+ *              ACTIONS
+ ************************************** */
+
 export type NodeAction =
   | { type: 'CREATE_NODE'; payload: { parentId: string | null; text: string; asSibling?: boolean } }
   | { type: 'DELETE_NODE'; payload: { nodeId: string } }
@@ -50,22 +73,20 @@ export type NodeAction =
   | { type: 'TOGGLE_COLLAPSE'; payload: { nodeId: string } }
   | { type: 'SELECT_NODE'; payload: { nodeId: string | null } };
 
-// UI State
+/**************************************
+ *          VIEWPORT STATE
+ ************************************** */
+
 export interface ViewportState {
   zoom: number;
   panX: number;
   panY: number;
 }
 
-// Connection between nodes for rendering
-export interface Connection {
-  fromId: string;
-  toId: string;
-  fromPos: Position;
-  toPos: Position;
-}
+/**************************************
+ *           DEFAULT STYLE
+ ************************************** */
 
-// Default colors palette
 export const DEFAULT_COLORS = [
   '#60A5FA', // blue
   '#34D399', // green
@@ -77,10 +98,61 @@ export const DEFAULT_COLORS = [
   '#14B8A6', // teal
 ];
 
-// Default styles
 export const DEFAULT_NODE_STYLE: NodeStyle = {
   backgroundColor: '#60A5FA',
   textColor: '#FFFFFF',
   icon: 'Circle',
   status: 'pending',
 };
+
+/**************************************
+ *           LAYOUT TYPES
+ ************************************** */
+
+export type LayoutType = 'hierarchical' | 'radial';
+
+export interface PositionedNode {
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  collapsed?: boolean;
+}
+
+export interface PositionedEdge {
+  from: string;
+  to: string;
+  path: string;
+}
+
+export interface LayoutResult {
+  nodes: Record<string, PositionedNode>;
+  edges: PositionedEdge[];
+  size: { width: number; height: number };
+}
+
+export interface LayoutConfig {
+  type: LayoutType;
+  nodeWidth?: number;
+  nodeheight?: number;
+
+  // Hierarchical specific
+  rankSep?: number;
+  nodeSep?: number;
+
+  // Radial specific
+  r0?: number;
+  levelGap?: number;
+  angleStart?: number;
+}
+
+// Generic hierarchical tree structure, used for both layouts
+export interface TreeNode {
+  id: string;
+  children: TreeNode[];
+  width?: number;
+  height?: number;
+  collapsed?: boolean;
+  data?: MindMapNode;
+}
