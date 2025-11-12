@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import { MindMap, MindMapNode, NodeStyle, ViewportState, DEFAULT_NODE_STYLE } from '../types/mindmap';
-import { LayoutType } from '../types/layout';
+import { MindMap, MindMapNode, NodeStyle, ViewportState, LayoutType, DEFAULT_NODE_STYLE } from '../types/mindmap';
 import { serializeToJSON, preparePDFExport, getExportBaseName } from '../utils/exporters';
 import { importFromContent } from '../utils/importers';
 import { calculateLayout } from '../utils/layout';
@@ -20,7 +19,7 @@ interface MindMapStore {
 
   // UI preferences
   layout: LayoutType;
-  theme: 'Light' | 'dark';
+  theme: 'light' | 'dark';
   
   // History for undo/redo
   history: MindMap[];
@@ -131,6 +130,8 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
     selectedNodeId: null,
     editingNodeId: null,
     viewport: { zoom: 1, panX: 0, panY: 0 },
+    layout: preferences.layout || 'hierarchical',
+    theme: preferences.theme || 'light',
     history: [],
     historyIndex: -1,
     currentFilePath: null,
@@ -395,7 +396,7 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
       if (!currentMap) return;
       
       // Calculate layout to get node position
-      const layout = calculateLayout(currentMap.nodes, currentMap.rootNodeId);
+      const layout = calculateLayout(currentMap.nodes, currentMap.rootNodeId) as any;
       const nodePosition = layout.nodePositions[nodeId];
       
       if (!nodePosition) return;

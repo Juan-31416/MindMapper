@@ -135,7 +135,7 @@ export interface LayoutResult {
 export interface LayoutConfig {
   type: LayoutType;
   nodeWidth?: number;
-  nodeheight?: number;
+  nodeHeight?: number;
 
   // Hierarchical specific
   rankSep?: number;

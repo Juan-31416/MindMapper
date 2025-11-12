@@ -125,7 +125,7 @@ interface RadialConfig {
   levelGap?: number;
   angleStart?: number;
   nodeWidth: number;
-  nodeheight: number;
+  nodeHeight: number;
 }
 
 interface SubtreeInfo {
@@ -148,7 +148,7 @@ export class RadialLayout {
     this.levelGap = config.levelGap ?? 150;
     this.angleStart = config.angleStart ?? -Math.PI / 2;
     this.nodeWidth = config.nodeWidth;
-    this.nodeHeight = config.nodeheight;
+    this.nodeHeight = config.nodeHeight;
     this.subtreeSizes = new Map();
     this.subtreeAngles = new Map();
   }
@@ -218,7 +218,7 @@ export class RadialLayout {
     angleEnd: number,
     depth: number,
   ): void {
-    this.subtreeAngles.get(node.id, {
+    this.subtreeAngles.set(node.id, {
       size: this.subtreeSizes.get(node.id) ?? 1,
       angleStart,
       angleEnd
@@ -368,7 +368,7 @@ export const calculateLayout = (
 
     const radialLayout = new RadialLayout({
       nodeWidth: config?.nodeWidth || NODE_WIDTH,
-      nodeheight: config?.nodeHeight || NODE_HEIGHT,
+      nodeHeight: config?.nodeHeight || NODE_HEIGHT,
       r0: config?.r0,
       levelGap: config?.levelGap,
       angleStart: config?.angleStart,
@@ -443,7 +443,7 @@ export const createLayout = (
   if (config.type === 'radial') {
     const radialLayout = new RadialLayout({
       nodeWidth: config.nodeWidth || NODE_WIDTH,
-      nodeheight: config.nodeHeight || NODE_HEIGHT,
+      nodeHeight: config.nodeHeight || NODE_HEIGHT,
       r0: config.r0,
       levelGap: config.levelGap,
       angleStart: config.angleStart,
@@ -459,33 +459,37 @@ export const createLayout = (
         nodes[node.id] = node.data;
       };
 
-      flatten(tree);
+      if (node.children) {
+        node.children.forEach(child => flatten(child));
+      }
+    };
 
-      const result = calculateHierarchicalLayout(nodes, tree.id);
+    flatten(tree);
 
-      // Convert to LayoutResult format
-      return {
-        nodes: Object.entries(result.nodePositions).reduce((acc, [id, pos]) => {
-          acc[id] = {
-            id,
-            x: pos.x,
-            y: pos.y,
-            width: NODE_WIDTH,
-            height: NODE_HEIGHT,
-            collapsed: nodes[id]?.collapsed || false
-          };
-          return acc;
-        }, {} as Record<string, PositionedNode>),
-        edges: result.connections.map(conn => ({
-          from: conn.fromId,
-          to: conn.toId,
-          path: calculateCurvedPath(conn.fromPos, conn.toPos)
-        })),
-        size: {
-          width: result.bounds.maxX - result.bounds.minX,
-          height: result.bounds.maxY - result.bounds.minY
-        }
-      };
-    }
-  };
-}
+    const result = calculateHierarchicalLayout(nodes, tree.id);
+
+    // Convert to LayoutResult format
+    return {
+      nodes: Object.entries(result.nodePositions).reduce((acc, [id, pos]) => {
+        acc[id] = {
+          id,
+          x: pos.x,
+          y: pos.y,
+          width: NODE_WIDTH,
+          height: NODE_HEIGHT,
+          collapsed: nodes[id]?.collapsed || false
+        };
+        return acc;
+      }, {} as Record<string, PositionedNode>),
+      edges: result.connections.map(conn => ({
+        from: conn.fromId,
+        to: conn.toId,
+        path: calculateCurvedPath(conn.fromPos, conn.toPos)
+      })),
+      size: {
+        width: result.bounds.maxX - result.bounds.minX,
+        height: result.bounds.maxY - result.bounds.minY
+      }
+    };
+  }
+};
