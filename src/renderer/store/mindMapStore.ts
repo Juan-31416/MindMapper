@@ -5,66 +5,39 @@ import { importFromContent } from '../utils/importers';
 import { calculateLayout } from '../utils/layout';
 
 interface MindMapStore {
-  // Current mind map
   currentMap: MindMap | null;
-  
-  // Selected node
   selectedNodeId: string | null;
-  
-  // Editing state
   editingNodeId: string | null;
-  
-  // Viewport state
   viewport: ViewportState;
-
-  // UI preferences
   layout: LayoutType;
   theme: 'light' | 'dark';
-  
-  // History for undo/redo
   history: MindMap[];
   historyIndex: number;
-  
-  // File path
   currentFilePath: string | null;
   isDirty: boolean;
   
   // Actions
   createNewMap: (name: string) => void;
   loadMap: (map: MindMap, filePath?: string) => void;
-  
-  // Node operations
   createNode: (parentId: string | null, text: string, asSibling?: boolean) => void;
   deleteNode: (nodeId: string) => void;
   updateNodeText: (nodeId: string, text: string) => void;
   updateNodeStyle: (nodeId: string, style: Partial<NodeStyle>) => void;
   moveNode: (nodeId: string, newParentId: string | null, order: number) => void;
   toggleCollapse: (nodeId: string) => void;
-  
-  // Selection and editing
   selectNode: (nodeId: string | null) => void;
   setEditingNode: (nodeId: string | null) => void;
-  
-  // Viewport
   setViewport: (viewport: Partial<ViewportState>) => void;
   resetViewport: () => void;
   focusOnNode: (nodeId: string) => void;
-
-  // UI preferences
   setLayout: (layout: LayoutType) => void;
   setTheme: (theme: 'light' | 'dark') => void;
-  
-  // History
   undo: () => void;
   redo: () => void;
   canUndo: () => boolean;
   canRedo: () => boolean;
-  
-  // Utility
   setCurrentFilePath: (path: string | null) => void;
   setIsDirty: (isDirty: boolean) => void;
-  
-  // File operations
   saveMap: () => Promise<boolean>;
   saveMapAs: () => Promise<boolean>;
   openMap: () => Promise<boolean>;
@@ -73,18 +46,20 @@ interface MindMapStore {
   loadTemplate: (template: MindMap) => void;
 }
 
+/***********************************
+ *           UTILITIES
+ *********************************** */
+
 const STORAGE_KEY = 'mindmapper-preferences';
 
 const loadPreferences = () => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      return JSON.parse(stored);
-    }
+    return stored ? JSON.parse(stored) : {};
   } catch (error) {
     console.error('Error loading preferences: ', error);
+    return {};
   }
-  return {};
 };
 
 const savePreferences = (preferences: { layout?: LayoutType; theme?: 'light' | 'dark'}) => {
@@ -123,9 +98,36 @@ const createEmptyMap = (name: string): MindMap => {
   };
 };
 
+const deepClone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj));
+
+const safeNumber = (value: number | undefined, fallback: number): number => {
+  const candidate = value ?? fallback;
+  return isFinite(candidate) ? candidate : fallback;
+};
+
+/*************************************
+ *                STORE
+ ************************************* */
+
 export const useMindMapStore = create<MindMapStore>((set, get) => {
   const preferences = loadPreferences();
+
+  // Helper to add current map to history
+  const addToHistory = (newMap: MindMap) => {
+    const { history, historyIndex } = get();
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push(deepClone(newMap));
+
+    set({
+      currentMap: newMap,
+      history: newHistory,
+      historyIndex: newHistory.length - 1,
+      isDirty: true,
+    });
+  };
+
   return {
+    // State
     currentMap: null,
     selectedNodeId: null,
     editingNodeId: null,
@@ -137,12 +139,13 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
     currentFilePath: null,
     isDirty: false,
     
+    // Map operations
     createNewMap: (name: string) => {
       const newMap = createEmptyMap(name);
       set({
         currentMap: newMap,
         selectedNodeId: newMap.rootNodeId,
-        history: [JSON.parse(JSON.stringify(newMap))],
+        history: [deepClone(newMap)],
         historyIndex: 0,
         isDirty: false,
       });
@@ -152,13 +155,25 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
       set({
         currentMap: map,
         selectedNodeId: map.rootNodeId,
-        history: [JSON.parse(JSON.stringify(map))],
+        history: [deepClone(map)],
         historyIndex: 0,
         currentFilePath: filePath || null,
         isDirty: false,
       });
     },
+
+    loadTemplate: (template: MindMap) => {
+      set({
+        currentMap: template,
+        selectedNodeId: template.rootNodeId,
+        history: [deepClone(template)],
+        historyIndex: 0,
+        currentFilePath: null,
+        isDirty: false,
+      });
+    },
   
+    // Node operations
     createNode: (parentId: string | null, text: string, asSibling = false) => {
       const { currentMap } = get();
       if (!currentMap) return;
@@ -173,11 +188,11 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
         order: 0,
       };
     
-      const newMap = JSON.parse(JSON.stringify(currentMap)) as MindMap;
+      const newMap = deepClone(currentMap);
       
       if (asSibling && parentId) {
         const currentNode = newMap.nodes[parentId];
-        if (currentNode && currentNode.parentId) {
+        if ( currentNode?.parentId) {
           const parentNode = newMap.nodes[currentNode.parentId];
           newNode.parentId = currentNode.parentId;
           newNode.order = currentNode.order + 1;
@@ -206,17 +221,8 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
       newMap.updatedAt = Date.now();
       
       // Add to history
-      const { history, historyIndex } = get();
-      const newHistory = history.slice(0, historyIndex + 1);
-      newHistory.push(JSON.parse(JSON.stringify(newMap)));
-      
-      set({
-        currentMap: newMap,
-        selectedNodeId: newNode.id,
-        history: newHistory,
-        historyIndex: newHistory.length - 1,
-        isDirty: true,
-      });
+      addToHistory(newMap);
+      set({ selectedNodeId: newNode.id });
       
       // Focus on the new node after a brief delay to ensure layout is updated
       setTimeout(() => {
@@ -228,7 +234,7 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
       const { currentMap } = get();
       if (!currentMap || nodeId === currentMap.rootNodeId) return;
       
-      const newMap = JSON.parse(JSON.stringify(currentMap)) as MindMap;
+      const newMap = deepClone(currentMap);
       const node = newMap.nodes[nodeId];
       
       if (!node) return;
@@ -252,70 +258,41 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
       newMap.updatedAt = Date.now();
       
       // Add to history
-      const { history, historyIndex } = get();
-      const newHistory = history.slice(0, historyIndex + 1);
-      newHistory.push(JSON.parse(JSON.stringify(newMap)));
-      
-      set({
-        currentMap: newMap,
-        selectedNodeId: node.parentId || currentMap.rootNodeId,
-        history: newHistory,
-        historyIndex: newHistory.length - 1,
-        isDirty: true,
-      });
+      addToHistory(newMap);
+      set({ selectedNodeId: node.parentId || currentMap.rootNodeId });
     },
     
     updateNodeText: (nodeId: string, text: string) => {
       const { currentMap } = get();
-      if (!currentMap) return;
+      if (!currentMap || !currentMap.nodes[nodeId]) return;
       
-      const newMap = JSON.parse(JSON.stringify(currentMap)) as MindMap;
-      if (newMap.nodes[nodeId]) {
-        newMap.nodes[nodeId].text = text;
-        newMap.updatedAt = Date.now();
+      const newMap = deepClone(currentMap);
+      
+      newMap.nodes[nodeId].text = text;
+      newMap.updatedAt = Date.now();
         
-        // Add to history
-        const { history, historyIndex } = get();
-        const newHistory = history.slice(0, historyIndex + 1);
-        newHistory.push(JSON.parse(JSON.stringify(newMap)));
-        
-        set({
-          currentMap: newMap,
-          history: newHistory,
-          historyIndex: newHistory.length - 1,
-          isDirty: true,
-        });
-      }
+      // Add to history
+      addToHistory(newMap);
     },
   
     updateNodeStyle: (nodeId: string, style: Partial<NodeStyle>) => {
       const { currentMap } = get();
-      if (!currentMap) return;
+      if (!currentMap || !currentMap.nodes[nodeId]) return;
       
-      const newMap = JSON.parse(JSON.stringify(currentMap)) as MindMap;
-      if (newMap.nodes[nodeId]) {
-        newMap.nodes[nodeId].style = { ...newMap.nodes[nodeId].style, ...style };
-        newMap.updatedAt = Date.now();
+      const newMap = deepClone(currentMap);
+      
+      newMap.nodes[nodeId].style = { ...newMap.nodes[nodeId].style, ...style };
+      newMap.updatedAt = Date.now();
         
-        // Add to history
-        const { history, historyIndex } = get();
-        const newHistory = history.slice(0, historyIndex + 1);
-        newHistory.push(JSON.parse(JSON.stringify(newMap)));
-        
-        set({
-          currentMap: newMap,
-          history: newHistory,
-          historyIndex: newHistory.length - 1,
-          isDirty: true,
-        });
-      }
+      // Add to history
+      addToHistory(newMap);
     },
     
     moveNode: (nodeId: string, newParentId: string | null, order: number) => {
       const { currentMap } = get();
       if (!currentMap || nodeId === currentMap.rootNodeId) return;
       
-      const newMap = JSON.parse(JSON.stringify(currentMap)) as MindMap;
+      const newMap = deepClone(currentMap);
       const node = newMap.nodes[nodeId];
       
       if (!node) return;
@@ -340,56 +317,47 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
       newMap.updatedAt = Date.now();
       
       // Add to history
-      const { history, historyIndex } = get();
-      const newHistory = history.slice(0, historyIndex + 1);
-      newHistory.push(JSON.parse(JSON.stringify(newMap)));
-      
-      set({
-        currentMap: newMap,
-        history: newHistory,
-        historyIndex: newHistory.length - 1,
-        isDirty: true,
-      });
+      addToHistory(newMap);
     },
     
     toggleCollapse: (nodeId: string) => {
       const { currentMap } = get();
-      if (!currentMap) return;
+      if (!currentMap || currentMap.nodes[nodeId]) return;
       
-      const newMap = JSON.parse(JSON.stringify(currentMap)) as MindMap;
-      if (newMap.nodes[nodeId]) {
-        // Ensure collapsed property exists and is boolean
-        if (typeof newMap.nodes[nodeId].collapsed !== 'boolean') {
-          newMap.nodes[nodeId].collapsed = false;
-        }
+      const newMap = deepClone(currentMap);
+      const node = newMap.nodes[nodeId];
+      node.collapsed = !node.collapsed;
+      newMap.updatedAt = Date.now();
         
-        newMap.nodes[nodeId].collapsed = !newMap.nodes[nodeId].collapsed;
-        newMap.updatedAt = Date.now();
-        
-        set({
+      set({
           currentMap: newMap,
           isDirty: true,
         });
-      }
     },
+
+    /****************************************
+     *         SELECTION & EDITING
+     **************************************** */
     
-    selectNode: (nodeId: string | null) => {
-      set({ selectedNodeId: nodeId });
-    },
+    selectNode: (nodeId: string | null) => set({ selectedNodeId: nodeId }),
     
-    setEditingNode: (nodeId: string | null) => {
-      set({ editingNodeId: nodeId });
-    },
+    setEditingNode: (nodeId: string | null) => set({ editingNodeId: nodeId }),
     
+    /***************************************
+     *             VIEWPORT
+    **************************************** */
+
     setViewport: (viewport: Partial<ViewportState>) => {
       set(state => ({
-        viewport: { ...state.viewport, ...viewport }
+        viewport: {
+          zoom: safeNumber(viewport.zoom, state.viewport.zoom),
+          panX: safeNumber(viewport.panX, state.viewport.panX),
+          panY: safeNumber(viewport.panY, state.viewport.panY),
+        }
       }));
     },
     
-    resetViewport: () => {
-      set({ viewport: { zoom: 1, panX: 0, panY: 0 } });
-    },
+    resetViewport: () => set({ viewport: { zoom: 1, panX: 0, panY: 0 } }),
     
     focusOnNode: (nodeId: string) => {
       const { currentMap, viewport } = get();
@@ -397,18 +365,25 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
       
       // Calculate layout to get node position
       const layout = calculateLayout(currentMap.nodes, currentMap.rootNodeId) as any;
-      const nodePosition = layout.nodePositions[nodeId];
-      
-      if (!nodePosition) return;
+      const nodePosition = layout.nodePositions?.[nodeId];
+
+      if (!nodePosition || !isFinite(nodePosition.x) || !isFinite(nodePosition.y)) {
+        console.warn(`focusOnNode: invalid position for node ${nodeId}`, nodePosition);
+        return;
+      }
       
       // Calculate the viewport adjustment to center the node
-      // We'll use a reasonable zoom level and center the node
       const targetZoom = Math.min(viewport.zoom, 1.2); // Don't zoom in too much
       const centerX = 400; // Approximate center of typical screen
       const centerY = 300;
       
       const newPanX = centerX - nodePosition.x * targetZoom;
       const newPanY = centerY - nodePosition.y * targetZoom;
+
+      if (!isFinite(newPanX) || !isFinite(newPanY)) {
+        console.error("focusOnNode: calculated NaN viewport", { newPanX, newPanY, nodePosition, targetZoom });
+        return;
+      }
       
       set({
         viewport: {
@@ -419,6 +394,10 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
       });
     },
     
+    /*******************************************
+     *           UI PREFERENCES
+     ******************************************* */
+
     setLayout: (layout: LayoutType) => {
       set({ layout });
       savePreferences({ layout });
@@ -429,12 +408,16 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
       savePreferences({ theme });
     },
 
+    /**********************************************
+     *                    HISTORY
+     ********************************************** */
+
     undo: () => {
       const { history, historyIndex } = get();
       if (historyIndex > 0) {
         const newIndex = historyIndex - 1;
         set({
-          currentMap: JSON.parse(JSON.stringify(history[newIndex])),
+          currentMap: deepClone(history[newIndex]),
           historyIndex: newIndex,
           isDirty: true,
         });
@@ -446,27 +429,31 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
       if (historyIndex < history.length - 1) {
         const newIndex = historyIndex + 1;
         set({
-          currentMap: JSON.parse(JSON.stringify(history[newIndex])),
+          currentMap: deepClone(history[newIndex]),
           historyIndex: newIndex,
           isDirty: true,
         });
       }
     },
     
-    canUndo: () => {
-      const { historyIndex } = get();
-      return historyIndex > 0;
-    },
+    canUndo: () => get().historyIndex > 0,
     
     canRedo: () => {
       const { history, historyIndex } = get();
       return historyIndex < history.length - 1;
     },
+
+    /*******************************************
+     *               UTILITY
+     ******************************************* */
     
     setCurrentFilePath: (path) => set({ currentFilePath: path }),
     setIsDirty: (isDirty) => set({ isDirty }),
     
-    // File operations
+    /********************************************
+     *             FILE OPETATIONS 
+     ******************************************** */ 
+
     saveMap: async () => {
       const { currentMap, currentFilePath } = get();
       if (!currentMap) return false;
@@ -551,9 +538,7 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
             cancelId: 0,
           });
           
-          if (result.response === 0) {
-            return false;
-          }
+          if (result.response === 0) return false;
         }
         
         // Show open dialog
@@ -586,16 +571,12 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
       if (!currentMap) return false;
       
       try {
-        // Prepare the canvas for export
         const { restore } = preparePDFExport();
-        
-        // Wait a bit for the canvas to update
         await new Promise(resolve => setTimeout(resolve, 100));
         
         const baseName = getExportBaseName(currentMap, currentFilePath);
         const result = await window.electronAPI.file.exportPDF(`${baseName}.pdf`);
         
-        // Restore the original viewport
         restore();
         
         if (result.success) {
@@ -652,17 +633,6 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
         });
         return false;
       }
-    },
-    
-    loadTemplate: (template: MindMap) => {
-      set({
-        currentMap: template,
-        selectedNodeId: template.rootNodeId,
-        history: [JSON.parse(JSON.stringify(template))],
-        historyIndex: 0,
-        currentFilePath: null,
-        isDirty: false,
-      });
     },
   };
 });
