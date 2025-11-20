@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { MindMap, MindMapNode, NodeStyle, ViewportState, LayoutType, DEFAULT_NODE_STYLE } from '../types/mindmap';
 import { serializeToJSON, preparePDFExport, getExportBaseName } from '../utils/exporters';
 import { importFromContent } from '../utils/importers';
-import { calculateLayout } from '../utils/layout';
+import { buildTreeFromNodes, calculateLayout, createLayout, NODE_WIDTH, NODE_HEIGHT } from '../utils/layout';
 
 interface MindMapStore {
   currentMap: MindMap | null;
@@ -322,12 +322,15 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
     
     toggleCollapse: (nodeId: string) => {
       const { currentMap } = get();
-      if (!currentMap || currentMap.nodes[nodeId]) return;
+      if (!currentMap || !currentMap.nodes[nodeId]) return;
       
       const newMap = deepClone(currentMap);
       const node = newMap.nodes[nodeId];
       node.collapsed = !node.collapsed;
       newMap.updatedAt = Date.now();
+
+      // Añadir a historial para poder deshacer
+      addToHistory(newMap);
         
       set({
           currentMap: newMap,
@@ -360,38 +363,58 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
     resetViewport: () => set({ viewport: { zoom: 1, panX: 0, panY: 0 } }),
     
     focusOnNode: (nodeId: string) => {
-      const { currentMap, viewport } = get();
-      if (!currentMap) return;
+      const { currentMap, viewport, layout } = get();
+      if (!currentMap || !currentMap.rootNodeId) return;
       
-      // Calculate layout to get node position
-      const layout = calculateLayout(currentMap.nodes, currentMap.rootNodeId) as any;
-      const nodePosition = layout.nodePositions?.[nodeId];
+      try {
+        const tree = buildTreeFromNodes(currentMap.nodes, currentMap.rootNodeId);
+        const result = createLayout(tree, {
+          type: layout || 'hierarchical',
+          nodeWidth: NODE_WIDTH,
+          nodeHeight: NODE_HEIGHT,
+          
+          // Radial config
+          r0: 100,
+          levelGap: 150,
+          angleStart: -Math.PI / 2,
+          
+          // Hierarchical config
+          rankSep: 100,
+          nodeSep: 50,
+        }) as any;
 
-      if (!nodePosition || !isFinite(nodePosition.x) || !isFinite(nodePosition.y)) {
-        console.warn(`focusOnNode: invalid position for node ${nodeId}`, nodePosition);
-        return;
-      }
-      
-      // Calculate the viewport adjustment to center the node
-      const targetZoom = Math.min(viewport.zoom, 1.2); // Don't zoom in too much
-      const centerX = 400; // Approximate center of typical screen
-      const centerY = 300;
-      
-      const newPanX = centerX - nodePosition.x * targetZoom;
-      const newPanY = centerY - nodePosition.y * targetZoom;
+        const positions = 'nodePositions' in result? result.nodePositions: result.nodes;
 
-      if (!isFinite(newPanX) || !isFinite(newPanY)) {
-        console.error("focusOnNode: calculated NaN viewport", { newPanX, newPanY, nodePosition, targetZoom });
-        return;
-      }
-      
-      set({
-        viewport: {
-          zoom: targetZoom,
-          panX: newPanX,
-          panY: newPanY,
+        const nodePosition = positions?.[nodeId];
+
+        if (!nodePosition || !isFinite(nodePosition.x) || !isFinite(nodePosition.y)) {
+          console.warn(`focusOnNode: invalid position for node ${nodeId}`, nodePosition);
+          return;
         }
-      });
+
+        // Calculate the viewport adjustment to center the node
+        const targetZoom = Math.min(viewport.zoom, 1.2); // Don't zoom in too much
+        const centerX = window.innerWidth / 2; // Approximate center of typical screen
+        const centerY = window.innerHeight / 2;
+        
+        const newPanX = centerX - nodePosition.x * targetZoom;
+        const newPanY = centerY - nodePosition.y * targetZoom;
+
+        if (!isFinite(newPanX) || !isFinite(newPanY)) {
+          console.error("focusOnNode: calculated NaN viewport", { newPanX, newPanY, nodePosition, targetZoom });
+          return;
+        }
+        
+        set({
+          viewport: {
+            zoom: targetZoom,
+            panX: newPanX,
+            panY: newPanY,
+          }
+        });
+      } catch (error) {
+        console.error('Error in focusOnNode:', error);
+      }
     },
     
     /*******************************************

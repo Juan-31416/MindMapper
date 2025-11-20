@@ -8,9 +8,9 @@ export const NODE_HEIGHT = 60;
 const RANK_SEPARATION = 100;
 const NODE_SEPARATION = 50;
 
-/**************************************
+/** -----------------------------------
  *           HIERARCHICAL LAYOUT
- ************************************** */
+ * ------------------------------------ */
 
 export interface HierarchicalLayoutResult {
   nodePositions: Record<string, Position>;
@@ -54,7 +54,7 @@ export const calculateHierarchicalLayout = (
     g.setNode(nodeId, { width: NODE_WIDTH, height: NODE_HEIGHT });
     
     // If not collapsed, process children
-    const isCollapsed = node.collapsed === true; // Handle undefined as false
+    const isCollapsed = node.collapsed === true;
     if (!isCollapsed && node.children.length > 0) {
       node.children
         .sort((a, b) => (nodes[a]?.order || 0) - (nodes[b]?.order || 0))
@@ -69,8 +69,6 @@ export const calculateHierarchicalLayout = (
   };
   
   traverse(rootNodeId);
-  
-  // Run layout algorithm
   dagre.layout(g);
   
   // Extract positions
@@ -116,9 +114,9 @@ export const calculateHierarchicalLayout = (
   };
 };
 
-/**************************************
+/** -----------------------------------
  *           RADIAL LAYOUT
- ************************************** */
+ * ------------------------------------ */
 
 interface RadialConfig {
   r0?: number;
@@ -158,7 +156,7 @@ export class RadialLayout {
     this.calculateSubtreeSizes(root);
   
     // Step 2: Assign angles
-    this.assignAngles(root, this.angleStart, this.angleStart + 2 + Math.PI, 0);
+    this.assignAngles(root, this.angleStart, this.angleStart + 2 * Math.PI, 0);
 
     // Step 3: Calculate positions
     const nodes: Record<string, PositionedNode> = {};
@@ -168,9 +166,9 @@ export class RadialLayout {
 
     this.positionNodes(root, 0, nodes, edges, (x, y) => {
       minX = Math.min(minX, x);
-      maxX = Math.min(maxX, x);
+      maxX = Math.max(maxX, x);
       minY = Math.min(minY, y);
-      maxY = Math.min(maxY, y);
+      maxY = Math.max(maxY, y);
     });
 
     // Calculate canvas dimensions
@@ -255,10 +253,10 @@ export class RadialLayout {
     if (!info) return;
 
     const midAngle = (info.angleStart + info.angleEnd) / 2;
-    const radius = depth === 0 ? 0 : this.r0 + depth + this.levelGap;
+    const radius = depth === 0 ? 0 : this.r0 + depth * this.levelGap;
 
-    const x = radius + Math.cos(midAngle);
-    const y = radius + Math.sin(midAngle);
+    const x = radius * Math.cos(midAngle);
+    const y = radius * Math.sin(midAngle);
 
     nodes[node.id] = {
       id: node.id,
@@ -269,8 +267,8 @@ export class RadialLayout {
       collapsed: node.collapsed
     };
 
-    updateBounds(x - this.nodeWidth / 2, y -this.nodeHeight / 2);
-    updateBounds(x + this.nodeWidth /2, y + this.nodeHeight / 2);
+    updateBounds(x - this.nodeWidth / 2, y - this.nodeHeight / 2);
+    updateBounds(x + this.nodeWidth / 2, y + this.nodeHeight / 2);
 
     if (node.collapsed || node.children.length === 0) {
       return;
@@ -294,15 +292,15 @@ export class RadialLayout {
     // Smooth curved path for radial layout
     const dx = x2 - x1;
     const dy = y2 - y1;
-    const distance = Math.sqrt(dx + dx + dy + dy);
+    const distance = Math.sqrt(dx * dx + dy * dy);
 
     const controlDistance = distance * 0.4;
     const angle = Math.atan2(dy, dx);
 
-    const cx1 = x1 + controlDistance + Math.cos(angle);
-    const cy1 = y1 + controlDistance + Math.sin(angle);
-    const cx2 = x2 - controlDistance + Math.cos(angle);
-    const cy2 = y2 - controlDistance + Math.sin(angle);
+    const cx1 = x1 + controlDistance * Math.cos(angle);
+    const cy1 = y1 + controlDistance * Math.sin(angle);
+    const cx2 = x2 - controlDistance * Math.cos(angle);
+    const cy2 = y2 - controlDistance * Math.sin(angle);
 
     return `M ${x1} ${y1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${x2} ${y2}`;
   }

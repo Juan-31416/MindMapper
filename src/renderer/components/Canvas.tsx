@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { useMindMapStore } from '../store/mindMapStore';
 import { calculateLayout, calculateCurvedPath, NODE_WIDTH, NODE_HEIGHT } from '../utils/layout';
@@ -33,27 +33,37 @@ const Canvas: React.FC = () => {
   const [prevPositions, setPrevPositions] = useState<Record<string, { x: number, y:number }>>({});
   const [layoutResult, setLayoutResult] = useState<LayoutResult | null>(null);
 
+  // Calculate structure fingerprint
+  const treeStructure = useMemo(() => {
+    if (!currentMap) return '';
+
+    const getStructure = ( nodeId: string): string => {
+      const node = currentMap.nodes[nodeId];
+      if (!node) return '';
+
+      const childrenStructure = node.children.map(childId => getStructure(childId)).join(',');
+      return `${nodeId}:${node.collapsed}[${childrenStructure}]`;
+    };
+
+    return getStructure(currentMap.rootNodeId);
+  }, [currentMap?.nodes, currentMap?.rootNodeId]);
+
   // Calculate layout with animation support
   useEffect(() => {
     if (!currentMap || !currentMap.rootNodeId) return;
 
     try {
       // Save previous positons for animation
-      const currentLayout = calculateLayout(currentMap.nodes, currentMap.rootNodeId);
-
-      if (currentLayout && layoutResult) {
+      if (layoutResult) {
         const positions: Record<string, { x: number, y: number }> = {};
 
         const positionsSource = 'nodePositions' in layoutResult 
-          ? layoutResult.nodePositions 
-          : 'nodePositions' in currentLayout 
-          ? currentLayout.nodePositions 
-          : layoutResult.nodes || currentLayout.nodes;
+          ? layoutResult.nodePositions  
+          : layoutResult.nodes;
 
         if (positionsSource && typeof positionsSource === 'object') {
           Object.entries(positionsSource as Record<string, { x: number, y: number }>).forEach(([id, pos]) => {
-            const position = pos as { x: number; y: number };
-            positions[id] = { x: position.x, y: position.y };
+            positions[id] = { x: pos.x, y: pos.y };
           });
         }
         setPrevPositions(positions);
@@ -69,7 +79,7 @@ const Canvas: React.FC = () => {
         
         // Radial config
         r0: 100,
-        levelGap: 150,
+        levelGap: 180,
         angleStart: -Math.PI / 2,
         
         // Hierarchical config
@@ -88,7 +98,7 @@ const Canvas: React.FC = () => {
       const fallbackLayout = calculateLayout(currentMap.nodes, currentMap.rootNodeId);
       setLayoutResult(fallbackLayout as any);
     }
-  }, [currentMap?.nodes, currentMap?.rootNodeId, layout]);
+  }, [treeStructure, layout]);
 
 
   // Handle pan start
@@ -194,8 +204,11 @@ const Canvas: React.FC = () => {
 
     const handleWheelNative = (e: WheelEvent) => {
       e.preventDefault();
+
       const delta = e.deltaY > 0 ? 0.9 : 1.1;
-      const newZoom = Math.min(Math.max(0.1, viewport.zoom + delta), 3);
+      let newZoom = viewport.zoom * delta;
+      
+      newZoom = Math.min(Math.max(newZoom, 0.1), 3);
       setViewport({ zoom: newZoom });
     };
 
@@ -352,10 +365,20 @@ const Canvas: React.FC = () => {
               toggleCollapse(nodeId);
             }}
           >
-            <circle cx={0} cy={15} r={10} fill="#4B5563" />
+            {/** Big hitbox */}
+            <rect
+              x={-20}
+              y={5}
+              width={40}
+              height={50}
+              fill="transparent"
+              pointerEvents="all"
+            />
+            {/** Visual button */}
+            <circle cx={0} cy={20} r={10} fill="#4B5563" />
             <text
               x={0}
-              y={15}
+              y={20}
               textAnchor="middle"
               dominantBaseline="middle"
               fill="#ffffff"
