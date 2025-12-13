@@ -3,6 +3,10 @@ import { MindMap, MindMapNode, NodeStyle, ViewportState, LayoutType, DEFAULT_NOD
 import { serializeToJSON, preparePDFExport, getExportBaseName } from '../utils/exporters';
 import { importFromContent } from '../utils/importers';
 import { buildTreeFromNodes, calculateLayout, createLayout, NODE_WIDTH, NODE_HEIGHT } from '../utils/layout';
+import type { SearchState } from '../types/search';
+import { createSearchIndex, runSearch as runFuzzySearch, DEFAULT_SEARCH_CONFIG } from '../utils/searcher';
+import type Fuse from 'fuse.js';
+import type { MindMapNode as SearchableNode } from '../types/mindmap';
 
 interface MindMapStore {
   currentMap: MindMap | null;
@@ -15,7 +19,9 @@ interface MindMapStore {
   historyIndex: number;
   currentFilePath: string | null;
   isDirty: boolean;
-  
+  search: SearchState;
+  _searchIndex?: Fuse<SearchableNode> | null;
+
   // Actions
   createNewMap: (name: string) => void;
   loadMap: (map: MindMap, filePath?: string) => void;
@@ -44,6 +50,9 @@ interface MindMapStore {
   exportPDF: () => Promise<boolean>;
   exportJSON: () => Promise<boolean>;
   loadTemplate: (template: MindMap) => void;
+  setSearchQuery: (query: string) => void;
+  clearSearch: () => void;
+  runSearchNow: () => void;
 }
 
 /***********************************
@@ -124,8 +133,13 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
       historyIndex: newHistory.length - 1,
       isDirty: true,
     });
+
+    // Update search index when maps changes
+    const searchIndex = createSearchIndex(newMap.nodes as Record<string, SearchableNode>);
+    set({ _searchIndex: searchIndex });
   };
 
+  
   return {
     // State
     currentMap: null,
@@ -138,20 +152,40 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
     historyIndex: -1,
     currentFilePath: null,
     isDirty: false,
+
+    // Initial search
+    search: {
+      query: '',
+      results: [],
+      isSearching: false,
+      isActive: false,
+      lastUpdatedAt: null,
+    },
+    _searchIndex: null,
     
     // Map operations
     createNewMap: (name: string) => {
       const newMap = createEmptyMap(name);
+      const searchIndex = createSearchIndex(newMap.nodes as Record<string, SearchableNode>);
       set({
         currentMap: newMap,
         selectedNodeId: newMap.rootNodeId,
         history: [deepClone(newMap)],
         historyIndex: 0,
         isDirty: false,
+        _searchIndex: searchIndex,
+        search: {
+          query: '',
+          results: [],
+          isSearching: false,
+          isActive: false,
+          lastUpdatedAt: null,
+        },
       });
     },
     
     loadMap: (map: MindMap, filePath?: string) => {
+      const searchIndex = createSearchIndex(map.nodes as Record<string, SearchableNode>);
       set({
         currentMap: map,
         selectedNodeId: map.rootNodeId,
@@ -159,10 +193,19 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
         historyIndex: 0,
         currentFilePath: filePath || null,
         isDirty: false,
+        _searchIndex: searchIndex,
+        search: {
+          query: '',
+          results: [],
+          isSearching: false,
+          isActive: false,
+          lastUpdatedAt: null,
+        },
       });
     },
 
     loadTemplate: (template: MindMap) => {
+      const searchIndex = createSearchIndex(template.nodes as Record<string, SearchableNode>);
       set({
         currentMap: template,
         selectedNodeId: template.rootNodeId,
@@ -170,6 +213,14 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
         historyIndex: 0,
         currentFilePath: null,
         isDirty: false,
+        _searchIndex: searchIndex,
+        search: {
+          query: '',
+          results: [],
+          isSearching: false,
+          isActive: false,
+          lastUpdatedAt: null,
+        },
       });
     },
   
@@ -439,10 +490,13 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
       const { history, historyIndex } = get();
       if (historyIndex > 0) {
         const newIndex = historyIndex - 1;
+        const map = deepClone(history[newIndex]);
+        const searchIndex = createSearchIndex(map.nodes as Record<string, SearchableNode>);
         set({
-          currentMap: deepClone(history[newIndex]),
+          currentMap: map,
           historyIndex: newIndex,
           isDirty: true,
+          _searchIndex: searchIndex,
         });
       }
     },
@@ -451,10 +505,13 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
       const { history, historyIndex } = get();
       if (historyIndex < history.length - 1) {
         const newIndex = historyIndex + 1;
+        const map = deepClone(history[newIndex]);
+        const searchIndex = createSearchIndex(map.nodes as Record<string, SearchableNode>);
         set({
-          currentMap: deepClone(history[newIndex]),
+          currentMap: map,
           historyIndex: newIndex,
           isDirty: true,
+          _searchIndex: searchIndex,
         });
       }
     },
@@ -656,6 +713,66 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
         });
         return false;
       }
+    },
+
+    /*********************************************
+     *               SEARCH ACTIONS
+     ********************************************* */
+    setSearchQuery: (query: string) => {
+      const trimmed = query.trimStart();
+      const now = Date.now();
+      set((state) => ({
+        search: {
+          ...state.search,
+          query: trimmed,
+          isActive: trimmed.length >= DEFAULT_SEARCH_CONFIG.MinQueryLength,
+          lastUpdatedAt: now,
+        },
+      }));
+    },
+
+    clearSearch: () => {
+      set({
+        search: {
+          query: '',
+          results: [],
+          isSearching: false,
+          isActive: false,
+          lastUpdatedAt: null,
+        },
+      });
+    },
+
+    runSearchNow: () => {
+      const { search, _searchIndex } = get();
+      const query = search.query.trim();
+      if (query.length < DEFAULT_SEARCH_CONFIG.MinQueryLength || !_searchIndex) {
+        set((state) => ({
+          search: {
+            ...state.search,
+            results: [],
+            isSearching: false,
+          },
+        }));
+        return;
+      }
+
+      set((state) => ({
+        search: {
+          ...state.search,
+          isSearching: true,
+        },
+      }));
+
+      const results = runFuzzySearch(_searchIndex, query);
+
+      set((state) => ({
+        search: {
+          ...state.search,
+          results,
+          isSearching: false,
+        },
+      }));
     },
   };
 });
