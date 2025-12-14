@@ -69,25 +69,31 @@ mindmapper/
 │   └── renderer/             # Renderer process (React/TypeScript)
 │       ├── main.tsx          # React entry point
 │       ├── App.tsx           # Root component
+│       ├── index.html        # main HTML
 │       │
 │       ├── components/       # React components
 │       │   ├── Canvas.tsx    # SVG canvas for mind map
 │       │   ├── Toolbar.tsx   # Top toolbar
 │       │   ├── NodeEditor.tsx # Right sidebar editor
-│       │   └── Node.tsx      # Individual node component
+│       │   └── SearchBar.tsx # Search bar component
+│       │
+│       ├── hooks             # hooks porcess
+│       │   └── useFuzzySearch.ts # Searching hooks
 │       │
 │       ├── store/            # State management
 │       │   └── mindMapStore.ts # Zustand store
 │       │
 │       ├── types/            # TypeScript type definitions
 │       │   ├── mindmap.ts    # Core data types
-│       │   └── electron.d.ts # Electron API types
+│       │   ├── electron.d.ts # Electron API types
+│       │   └── search.ts     # Searching types
 │       │
 │       ├── utils/            # Utility functions
 │       │   ├── layout.ts     # Graph layout logic
 │       │   ├── theme.ts      # Theme management
 │       │   ├── exporters.ts  # Export functionality
-│       │   └── importers.ts  # Import functionality
+│       │   ├── importers.ts  # Import functionality
+│       │   └── searcher.ts   # Searching logic
 │       │
 │       ├── templates/        # Mind map templates
 │       │   └── brainstorming.ts
@@ -97,7 +103,9 @@ mindmapper/
 │           ├── App.css       # App layout
 │           ├── Canvas.css    # Canvas styles
 │           ├── Toolbar.css   # Toolbar styles
-│           └── NodeEditor.css # Editor styles
+│           ├── NodeEditor.css # Editor styles
+│           ├── edges.css     # Edges styles
+│           └── SearchBar.css # Search bar styles
 │
 ├── dist/                     # Compiled output
 ├── release/                  # Packaged applications
