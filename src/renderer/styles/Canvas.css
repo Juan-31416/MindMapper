@@ -148,6 +148,12 @@
   animation: search-pulse 2s sease-in-out infinite;
 }
 
+.node-text.node-text--search {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 @keyframes search-pulse {
   0%, 100% {
     filter: brightness(1);

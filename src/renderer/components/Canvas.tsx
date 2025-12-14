@@ -226,6 +226,14 @@ const Canvas: React.FC = () => {
     return new Set(search.results.map(r => r.nodeId));
   }, [search.results]);
 
+  const searchResultsById = useMemo(() => {
+    const map = new Map<string, typeof search.results[number]>();
+    for (const r of search.results) {
+      map.set(r.nodeId, r);
+    }
+    return map;
+  }, [search.results]);
+
   const renderNode = (nodeId: string, node: MindMapNode) => {
     const positions = (layoutResult && 'nodePositions' in layoutResult) ? (layoutResult as any).nodePositions : layoutResult?.nodes;
     if (!positions) return null;
@@ -248,6 +256,7 @@ const Canvas: React.FC = () => {
     const isDropTarget = dropTarget === nodeId;
     const hasChildren = node.children.length > 0;
     const isSearchMatch = searchMatchIds.has(nodeId);
+    const searchResult = searchResultsById.get(nodeId);
 
     // Get icon component
     const IconComponent = node.style.icon
@@ -338,9 +347,12 @@ const Canvas: React.FC = () => {
             textAnchor="middle"
             dominantBaseline="middle"
             fill={node.style.textColor}
-            className="node-text"
+            className={`node-text ${isSearchMatch ? 'node-text--search' : ''}`}
           >
-            {node.text.length > 25 ? node.text.substring(0, 22) + '...' : node.text}
+            {isSearchMatch
+              ? (node.text.length > 40 ? node.text.substring(0, 37) + '...' : node.text)
+              : (node.text.length > 25 ? node.text.substring(0, 22) + '...' : node.text)
+            }
           </text>
         )}
 

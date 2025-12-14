@@ -45,18 +45,23 @@ const App: React.FC = () => {
 
   // Create new map handler
   const handleNewMap = async () => {
-    if (isDirty && window.electronAPI?.dialog) {
-      const result = await window.electronAPI.dialog.showMessage({
-        type: 'question',
-        title: 'Unsaved Changes',
-        message: 'You have unsaved changes. Do you want to continue?',
-        buttons: ['Cancel', 'Continue'],
-        defaultId: 0,
-        cancelId: 0,
-      });
-      
-      if (result.response === 0) {
-        return;
+    if (isDirty) {
+      if (window.electronAPI?.dialog) {
+        const result = await window.electronAPI.dialog.showMessage({
+          type: 'question',
+          title: 'Unsaved Changes',
+          message: 'You have unsaved changes. Do you want to continue?',
+          buttons: ['Cancel', 'Continue'],
+          defaultId: 0,
+          cancelId: 0,
+        });
+        
+        if (result.response === 0) {
+          return;
+        }
+      } else {
+        const confirmed = window.confirm('You have unsaved changes. Do  ou want to continue?');
+        if (!confirmed) return;
       }
     }
     
@@ -169,17 +174,24 @@ const App: React.FC = () => {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing in input (except search input)
-      if (e.target instanceof HTMLInputElement && !isSearchOpen) return;
+      const target = e.target as HTMLElement | null;
+      const isInputLike =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target?.getAttribute('contenteditable') === 'true';
 
-      // Search shortcut
+      // Search shortcut (Ctrl/Cmd + F) always active
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault();
-        setIsSearchOpen(true);
+        setIsSearchOpen(prev => !prev);
         return;
       }
+
       // Do not process other shortcuts if search is open
-      if (isSearchOpen) return;
+      if (isSearchOpen && target?.classList.contains('search-input')) {return;}
+
+      // Do not process shortcuts if is writing in an element
+      if (isInputLike) return;
 
       // File operations (Ctrl/Cmd + key)
       if (e.ctrlKey || e.metaKey) {
@@ -254,7 +266,10 @@ const App: React.FC = () => {
 
       <SearchBar
         isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
+        onClose={() => {
+          setIsSearchOpen(false);
+          useMindMapStore.getState().clearSearch();
+        }}
       />
     </div>
   );

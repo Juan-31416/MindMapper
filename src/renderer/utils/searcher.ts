@@ -14,8 +14,8 @@ const FUSE_OPTIONS: IFuseOptions<SearchableNode> = {
     includeScore: true,
     includeMatches: true,
     useExtendedSearch: false,
-    threshold: 0.4,     // Error tolerance
-    distance: 100,
+    threshold: 0.2,     // Error tolerance
+    distance: 60,
     minMatchCharLength: 2,
     keys: [
         { name: 'text', weight: 0.7 },      // main field

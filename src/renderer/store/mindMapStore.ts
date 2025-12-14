@@ -538,6 +538,11 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
       const { currentMap, currentFilePath } = get();
       if (!currentMap) return false;
       
+      if (!window.electronAPI?.file) {
+        console.warn('Electron API not available');
+        return false;
+      }
+
       try {
         const content = serializeToJSON(currentMap);
         
@@ -605,20 +610,30 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
     },
     
     openMap: async () => {
+      if (!window.electronAPI?.file) {
+        console.warn('Electron API not available');
+        return false;
+      }
+
       try {
         // Check for unsaved changes
         const { isDirty } = get();
         if (isDirty) {
-          const result = await window.electronAPI.dialog.showMessage({
-            type: 'question',
-            title: 'Unsaved Changes',
-            message: 'You have unsaved changes. Do you want to continue?',
-            buttons: ['Cancel', 'Continue'],
-            defaultId: 0,
-            cancelId: 0,
-          });
-          
-          if (result.response === 0) return false;
+          if (window.electronAPI?.dialog) {
+            const result = await window.electronAPI.dialog.showMessage({
+              type: 'question',
+              title: 'Unsaved Changes',
+              message: 'You have unsaved changes. Do you want to continue?',
+              buttons: ['Cancel', 'Continue'],
+              defaultId: 0,
+              cancelId: 0,
+            });
+            
+            if (result.response === 0) return false;
+          } else {
+            const confirmed = window.confirm('You have unsaved changes. Do you want to continue?');
+            if (!confirmed) return false;
+          }
         }
         
         // Show open dialog

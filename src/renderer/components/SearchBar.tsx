@@ -23,6 +23,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const [currentResultIndex, setCurrentResultIndex] = useState(0);
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     // Auto-focus
     useEffect(() => {
@@ -48,11 +49,26 @@ const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
         setCurrentResultIndex(0);
     }, [search.results.length]);
 
+    // Handlye close cases
     const handleClose = () => {
         clearSearch();
         setCurrentResultIndex(0);
         onClose();
     };
+
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handleClickOutside = (e: MouseEvent) => {
+            if (!containerRef.current) return;
+            if (!containerRef.current.contains(e.target as Node)) {
+                onClose();
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isOpen, onClose]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value);
@@ -120,12 +136,14 @@ const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
 
     if (!isOpen) return null;
 
-    const hasQuery = search.query.trim().length >= DEFAULT_SEARCH_CONFIG.MinQueryLength;
-    const hasResults = search.results.length > 0;
+    const minLen = DEFAULT_SEARCH_CONFIG.MinQueryLength;
+    const queryLen = search.query.trim().length;
+    const hasQuery = queryLen >= minLen;
+    const hasResults = hasQuery && search.results.length > 0;
 
     return (
         <div className="search-bar-overlay">
-            <div className="search-bar">
+            <div ref={containerRef} className="search-bar">
                 <div className="search-input-wrapper">
                     <LucideIcons.Search size={18} className="search-icon" />
                     
@@ -156,9 +174,13 @@ const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
                     )}
                 </div>
 
-                {hasQuery && (
+                {queryLen > 0 && (
                     <div className="search-results-info">
-                        {hasResults ? (
+                        {queryLen < minLen ? (
+                            <span className="search-no-results">
+                                Escribe al menos {minLen} carcteres
+                            </span>
+                        ) : hasResults ? (
                             <>
                                 <span className="search-count">
                                     {currentResultIndex + 1} de {search.results.length}
