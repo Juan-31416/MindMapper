@@ -3,6 +3,7 @@ import * as LucideIcons from 'lucide-react';
 import { useMindMapStore } from "../store/mindMapStore";
 import { DEFAULT_SEARCH_CONFIG } from "../utils/searcher";
 import '../styles/SearchBar.css';
+import { MindMapNode } from "../types/mindmap";
 
 interface SearchBarProps {
     isOpen: boolean;
@@ -104,13 +105,13 @@ const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
         // Build path from node to root
         while (currentId) {
             path.unshift(currentId);
-            const node = currentMap.nodes[currentId];
+            const node = currentMap.nodes[currentId] as MindMapNode | undefined;
             currentId = node?.parentId || null;
         }
 
         // Expand all nodes in path except for target
         path.slice(0, -1).forEach(id => {
-            const node = currentMap.nodes[id];
+            const node = currentMap.nodes[id] as MindMapNode | undefined;
             if(node?.collapsed) {
                 useMindMapStore.getState().toggleCollapse(id);
             }
@@ -201,4 +202,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
             </div>
         </div>
     );
-}
+};
+
+export default SearchBar;

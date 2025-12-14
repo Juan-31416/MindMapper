@@ -20,6 +20,7 @@ const Canvas: React.FC = () => {
     resetViewport,
     moveNode,
     layout,
+    search
   } = useMindMapStore();
 
   const svgRef = useRef<SVGSVGElement>(null);
@@ -220,6 +221,10 @@ const Canvas: React.FC = () => {
     };
   }, [viewport.zoom, setViewport]);
 
+  // Node IDs which match with search
+  const searchMatchIds = useMemo(() => {
+    return new Set(search.results.map(r => r.nodeId));
+  }, [search.results]);
 
   const renderNode = (nodeId: string, node: MindMapNode) => {
     const positions = (layoutResult && 'nodePositions' in layoutResult) ? (layoutResult as any).nodePositions : layoutResult?.nodes;
@@ -242,6 +247,7 @@ const Canvas: React.FC = () => {
     const isEditing = editingNodeId === nodeId;
     const isDropTarget = dropTarget === nodeId;
     const hasChildren = node.children.length > 0;
+    const isSearchMatch = searchMatchIds.has(nodeId);
 
     // Get icon component
     const IconComponent = node.style.icon
@@ -252,7 +258,7 @@ const Canvas: React.FC = () => {
       <g
         key={nodeId}
         transform={`translate(${x}, ${y})`}
-        className={`mind-node ${isSelected ? 'selected' : ''} ${isDropTarget ? 'drop-target' : ''} ${isAnimating ? 'animating' : ''}`}
+        className={`mind-node ${isSelected ? 'selected' : ''} ${isDropTarget ? 'drop-target' : ''} ${isAnimating ? 'animating' : ''} ${isSearchMatch ? 'search-match' : ''}`}
         onClick={(e) => {
           e.stopPropagation();
           selectNode(nodeId);
@@ -283,8 +289,8 @@ const Canvas: React.FC = () => {
           height={NODE_HEIGHT}
           rx={8}
           fill={node.style.backgroundColor}
-          stroke={isSelected ? '#ffffff' : 'none'}
-          strokeWidth={isSelected ? 3 : 0}
+          stroke={isSelected ? '#ffffff' : isSearchMatch ? '#FFD700' : 'none'}
+          strokeWidth={isSelected ? 3 : isSearchMatch ? 2 : 0}
           className="node-bg"
         />
 

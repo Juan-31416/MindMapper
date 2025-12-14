@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import Toolbar from './components/Toolbar';
 import Canvas from './components/Canvas';
 import NodeEditor from './components/NodeEditor';
+import SearchBar from './components/SearchBar';
 import { useMindMapStore } from './store/mindMapStore';
 import { initializeTheme, toggleTheme as utilToggleTheme } from './utils/theme';
 import { createBlankTemplate } from './templates/brainstorming';
 import './styles/App.css';
+import { isSea } from 'node:sea';
 
 const App: React.FC = () => {
   const {
@@ -26,6 +28,7 @@ const App: React.FC = () => {
   } = useMindMapStore();
   
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // Initialize theme
   useEffect(() => {
@@ -166,8 +169,17 @@ const App: React.FC = () => {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing in input
-      if (e.target instanceof HTMLInputElement) return;
+      // Ignore if typing in input (except search input)
+      if (e.target instanceof HTMLInputElement && !isSearchOpen) return;
+
+      // Search shortcut
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        setIsSearchOpen(true);
+        return;
+      }
+      // Do not process other shortcuts if search is open
+      if (isSearchOpen) return;
 
       // File operations (Ctrl/Cmd + key)
       if (e.ctrlKey || e.metaKey) {
@@ -214,7 +226,7 @@ const App: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedNodeId, currentMap, createNode, deleteNode, undo, redo, saveMap, openMap, exportPDF, handleNewMap]);
+  }, [selectedNodeId, currentMap, isSearchOpen, createNode, deleteNode, undo, redo, saveMap, openMap, exportPDF, handleNewMap]);
 
   if (!currentMap) {
     return (
@@ -239,6 +251,11 @@ const App: React.FC = () => {
           <NodeEditor />
         </div>
       </div>
+
+      <SearchBar
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+      />
     </div>
   );
 };
