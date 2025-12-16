@@ -266,10 +266,7 @@ const App: React.FC = () => {
 
       <SearchBar
         isOpen={isSearchOpen}
-        onClose={() => {
-          setIsSearchOpen(false);
-          useMindMapStore.getState().clearSearch();
-        }}
+        onClose={() => setIsSearchOpen(false)}
       />
     </div>
   );

@@ -4,6 +4,7 @@ import { useMindMapStore } from "../store/mindMapStore";
 import { DEFAULT_SEARCH_CONFIG } from "../utils/searcher";
 import '../styles/SearchBar.css';
 import { MindMapNode } from "../types/mindmap";
+import { useFuzzySearch } from '../hooks/useFuzzySearch';
 
 interface SearchBarProps {
     isOpen: boolean;
@@ -11,50 +12,31 @@ interface SearchBarProps {
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
+    const { focusOnNode, currentMap } = useMindMapStore();
     const {
-        search,
-        setSearchQuery,
-        clearSearch,
-        runSearchNow,
-        focusOnNode,
-        currentMap,
-    } = useMindMapStore();
+        query,
+        results,
+        isSearching,
+        setQuery,
+        clear,
+        forceSearch
+    } = useFuzzySearch();
 
     const inputRef = useRef<HTMLInputElement>(null);
     const [currentResultIndex, setCurrentResultIndex] = useState(0);
-    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
     // Auto-focus
     useEffect(() => {
-        if (debounceTimerRef.current) {
-            clearTimeout(debounceTimerRef.current);
+        if (isOpen && inputRef.current) {
+            inputRef.current.focus();
+            inputRef.current.select();
         }
+    }, [isOpen]);
 
-        if (search.query.trim().length >= DEFAULT_SEARCH_CONFIG.MinQueryLength) {
-            debounceTimerRef.current = setTimeout(() => {
-                runSearchNow();
-            }, DEFAULT_SEARCH_CONFIG.debounceMs);
-        }
-
-        return () => {
-            if (debounceTimerRef.current) {
-                clearTimeout(debounceTimerRef.current);
-            }
-        };
-    }, [search.query, runSearchNow]);
-
-    // Reset index when results changes
     useEffect(() => {
         setCurrentResultIndex(0);
-    }, [search.results.length]);
-
-    // Handlye close cases
-    const handleClose = () => {
-        clearSearch();
-        setCurrentResultIndex(0);
-        onClose();
-    };
+    }, [results.length]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -62,16 +44,23 @@ const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
         const handleClickOutside = (e: MouseEvent) => {
             if (!containerRef.current) return;
             if (!containerRef.current.contains(e.target as Node)) {
-                onClose();
+                handleClose();
             }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [isOpen, onClose]);
+    }, [isOpen]);
+
+    // Handlye close cases
+    const handleClose = () => {
+        clear();
+        setCurrentResultIndex(0);
+        onClose();
+    };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchQuery(e.target.value);
+        setQuery(e.target.value);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -88,26 +77,25 @@ const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
     };
 
     const navigateToNext = () => {
-        if (search.results.length === 0) return;
-        const nextIndex = (currentResultIndex + 1) % search.results.length;
+        if (results.length === 0) return;
+        const nextIndex = (currentResultIndex + 1) % results.length;
         setCurrentResultIndex(nextIndex);
         focusOnResult(nextIndex);
     };
 
     const navigateToPrevious = () => {
-        if (search.results.length === 0) return;
-        const prevIndex = currentResultIndex === 0 ? search.results.length - 1 : currentResultIndex - 1;
+        if (results.length === 0) return;
+        const prevIndex = currentResultIndex === 0 ? results.length - 1 : currentResultIndex - 1;
         setCurrentResultIndex(prevIndex);
         focusOnResult(prevIndex);
     };
 
     const focusOnResult = (index: number) => {
-        const result = search.results[index];
+        const result = results[index];
         if(!result) return;
 
         // Expand all collapsed node
         expandPathToNode(result.nodeId);
-
         // Center node
         focusOnNode(result.nodeId);
     };
@@ -137,9 +125,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
 
     const minLen = DEFAULT_SEARCH_CONFIG.MinQueryLength;
-    const queryLen = search.query.trim().length;
-    const hasQuery = queryLen >= minLen;
-    const hasResults = hasQuery && search.results.length > 0;
+    const qLen = query.trim().length;
+    const hasQuery = qLen >= minLen;
+    const hasResults = hasQuery && results.length > 0;
 
     return (
         <div className="search-bar-overlay">
@@ -152,21 +140,21 @@ const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
                         type="text"
                         className="search-input"
                         placeholder="Buscar nodos... (Esc para cerrar)"
-                        value={search.query}
+                        value={query}
                         onChange={handleInputChange}
                         onKeyDown={handleKeyDown}
                     />
 
-                    {search.isSearching && (
+                    {isSearching && (
                         <div className="search-spinner">
                         <LucideIcons.Loader2 size={16} className="spinning" />
                         </div>
                     )}
 
-                    {search.query && (
+                    {query && (
                         <button
                         className="search-clear-btn"
-                        onClick={() => setSearchQuery('')}
+                        onClick={() => setQuery('')}
                         title="Limpiar búsqueda"
                         >
                         <LucideIcons.X size={16} />
@@ -174,23 +162,23 @@ const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
                     )}
                 </div>
 
-                {queryLen > 0 && (
+                {qLen > 0 && (
                     <div className="search-results-info">
-                        {queryLen < minLen ? (
+                        {qLen < minLen ? (
                             <span className="search-no-results">
-                                Escribe al menos {minLen} carcteres
+                                Escribe al menos {minLen} caracteres
                             </span>
-                        ) : hasResults ? (
-                            <>
-                                <span className="search-count">
-                                    {currentResultIndex + 1} de {search.results.length}
-                                </span>
-                                
-                                <div className="search-navigation">
+                            ) : hasResults ? (
+                                <>
+                                    <span className="search-count">
+                                    {currentResultIndex + 1} de {results.length}
+                                    </span>
+                                    
+                                    <div className="search-navigation">
                                     <button
                                         className="search-nav-btn"
                                         onClick={navigateToPrevious}
-                                        disabled={search.results.length === 0}
+                                        disabled={results.length === 0}
                                         title="Anterior (Shift+Enter)"
                                     >
                                         <LucideIcons.ChevronUp size={16} />
@@ -199,17 +187,17 @@ const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
                                     <button
                                         className="search-nav-btn"
                                         onClick={navigateToNext}
-                                        disabled={search.results.length === 0}
+                                        disabled={results.length === 0}
                                         title="Siguiente (Enter)"
                                     >
                                         <LucideIcons.ChevronDown size={16} />
                                     </button>
-                                </div>
-                            </>
+                                    </div>
+                                </>
                         ) : (
-                        <span className="search-no-results">
-                            No se encontraron nodos
-                        </span>
+                            <span className="search-no-results">
+                                No se encontraron nodos
+                            </span>
                         )}
                     </div>
                 )}
@@ -218,7 +206,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
                     className="search-close-btn"
                     onClick={handleClose}
                     title="Cerrar (Esc)"
-                >
+                    >
                     <LucideIcons.X size={20} />
                 </button>
             </div>
