@@ -3,7 +3,6 @@ import * as LucideIcons from 'lucide-react';
 import { useMindMapStore } from '../store/mindMapStore';
 import { toggleTheme, getCurrentTheme } from '../utils/theme';
 import { getAvailableTemplates } from '../templates/brainstorming';
-import { LayoutToggle } from './Toolbar/LayoutToggle';
 import '../styles/Toolbar.css';
 
 const Toolbar: React.FC = () => {
@@ -22,8 +21,8 @@ const Toolbar: React.FC = () => {
   } = useMindMapStore();
 
   // Layout state
-  const layout = useMindMapStore((state) => state.ui?.layout || state.layout);
-  const setLayout = useMindMapStore((state) => state.ui?.setLayout || state.setLayout);
+  const layout = useMindMapStore((state) => state.layout);
+  const setLayout = useMindMapStore((state) => state.setLayout);
   
   const [theme, setTheme] = useState(getCurrentTheme());
   const [showTemplates, setShowTemplates] = useState(false);
@@ -66,6 +65,10 @@ const Toolbar: React.FC = () => {
 
   const handleZoomOut = () => {
     setViewport({ zoom: Math.max(viewport.zoom - 0.2, 0.1) });
+  };
+
+  const handleLayoutChange = (layoutType: 'hierarchical' | 'radial') => {
+    setLayout(layoutType);
   };
 
   return (

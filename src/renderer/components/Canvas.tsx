@@ -1,10 +1,9 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { useMindMapStore } from '../store/mindMapStore';
 import { calculateLayout, calculateCurvedPath, NODE_WIDTH, NODE_HEIGHT } from '../utils/layout';
 import { createLayout, buildTreeFromNodes } from '../utils/index';
-import { LayoutType, LayoutResults } from '../types/layout';
-import { MindMapNode } from '../types/mindmap';
+import { MindMapNode, LayoutType, LayoutResult } from '../types/mindmap';
 import '../styles/Canvas.css';
 
 const Canvas: React.FC = () => {
@@ -18,8 +17,10 @@ const Canvas: React.FC = () => {
     updateNodeText,
     toggleCollapse,
     setViewport,
+    resetViewport,
     moveNode,
     layout,
+    search
   } = useMindMapStore();
 
   const svgRef = useRef<SVGSVGElement>(null);
@@ -31,36 +32,55 @@ const Canvas: React.FC = () => {
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [prevPositions, setPrevPositions] = useState<Record<string, { x: number, y:number }>>({});
-  const [layoutResult, setLayoutResult] = useState<layoutResult | null>(null);
+  const [layoutResult, setLayoutResult] = useState<LayoutResult | null>(null);
+
+  // Calculate structure fingerprint
+  const treeStructure = useMemo(() => {
+    if (!currentMap) return '';
+
+    const getStructure = ( nodeId: string): string => {
+      const node = currentMap.nodes[nodeId];
+      if (!node) return '';
+
+      const childrenStructure = node.children.map(childId => getStructure(childId)).join(',');
+      return `${nodeId}:${node.collapsed}[${childrenStructure}]`;
+    };
+
+    return getStructure(currentMap.rootNodeId);
+  }, [currentMap?.nodes, currentMap?.rootNodeId]);
 
   // Calculate layout with animation support
   useEffect(() => {
-    if (!currentMap || currentMap.rootNodeId) return;
+    if (!currentMap || !currentMap.rootNodeId) return;
 
     try {
       // Save previous positons for animation
-      const currentLayout = calculateLayout(currentMap.nodes, currentMap.rootNodeId);
-
-      if (currentLayout && layoutResult) {
+      if (layoutResult) {
         const positions: Record<string, { x: number, y: number }> = {};
 
-        Object.entries(layoutResult.nodePositions || currentLayout.nodePositions).forEach(([id, pos]) => {
-          positons[id] = { x: pos.x, y: pos.y };
-        });
+        const positionsSource = 'nodePositions' in layoutResult 
+          ? layoutResult.nodePositions  
+          : layoutResult.nodes;
+
+        if (positionsSource && typeof positionsSource === 'object') {
+          Object.entries(positionsSource as Record<string, { x: number, y: number }>).forEach(([id, pos]) => {
+            positions[id] = { x: pos.x, y: pos.y };
+          });
+        }
         setPrevPositions(positions);
         setIsAnimating(true);
       }
 
       // Build tree and create layout
-      const tree = buildTreeFromNodes(Object.values(currentMap.nodes), currentMap.rootNodeId);
+      const tree = buildTreeFromNodes(currentMap.nodes, currentMap.rootNodeId);
       const result = createLayout(tree, {
-        type: layout || 'hhierarchical',
+        type: layout || 'hierarchical',
         nodeWidth: NODE_WIDTH,
         nodeHeight: NODE_HEIGHT,
         
         // Radial config
         r0: 100,
-        levelGap: 150,
+        levelGap: 180,
         angleStart: -Math.PI / 2,
         
         // Hierarchical config
@@ -79,7 +99,7 @@ const Canvas: React.FC = () => {
       const fallbackLayout = calculateLayout(currentMap.nodes, currentMap.rootNodeId);
       setLayoutResult(fallbackLayout as any);
     }
-  }, [currentMap?.nodes, currentMap?.rootNodeId, layout]);
+  }, [treeStructure, layout]);
 
 
   // Handle pan start
@@ -108,7 +128,7 @@ const Canvas: React.FC = () => {
 
         // Check for drop targets
         let newDropTarget: string | null = null;
-        const positions = layoutResult.nodePositions || LayoutResult.nodes;
+        const positions = layoutResult?.nodes ?? {};
         Object.entries(positions).forEach(([nodeId, pos]) => {
           if (nodeId === draggedNode) return;
           const nodeX = (pos as any).x || pos.x;
@@ -147,12 +167,12 @@ const Canvas: React.FC = () => {
     if (!layout || !containerRef.current) return;
 
     const container = containerRef.current.getBoundingClientRect();
-    const bounds = LayoutResult.bounds || {
+    const bounds = layoutResult?.size ? {
       minX: 0,
       minY: 0,
-      maxX: layoutResult.size?.width || 800,
-      maxY: layoutResult.size?.height || 600,
-    };
+      maxX: layoutResult.size?.width,
+      maxY: layoutResult.size?.height,
+    }: { minX: 0, minY: 0, maxX: 800, maxY: 600 }
 
     const contentWidth = bounds.maxX - bounds.minX;
     const contentHeight = bounds.maxY - bounds.minY;
@@ -185,8 +205,11 @@ const Canvas: React.FC = () => {
 
     const handleWheelNative = (e: WheelEvent) => {
       e.preventDefault();
+
       const delta = e.deltaY > 0 ? 0.9 : 1.1;
-      const newZoom = Math.min(Math.max(0.1, viewport.zoom + delta), 3);
+      let newZoom = viewport.zoom * delta;
+      
+      newZoom = Math.min(Math.max(newZoom, 0.1), 3);
       setViewport({ zoom: newZoom });
     };
 
@@ -198,9 +221,21 @@ const Canvas: React.FC = () => {
     };
   }, [viewport.zoom, setViewport]);
 
+  // Node IDs which match with search
+  const searchMatchIds = useMemo(() => {
+    return new Set(search.results.map(r => r.nodeId));
+  }, [search.results]);
+
+  const searchResultsById = useMemo(() => {
+    const map = new Map<string, typeof search.results[number]>();
+    for (const r of search.results) {
+      map.set(r.nodeId, r);
+    }
+    return map;
+  }, [search.results]);
 
   const renderNode = (nodeId: string, node: MindMapNode) => {
-    const positions = layoutResult?.nodePositions || layoutResult?.nodes;
+    const positions = (layoutResult && 'nodePositions' in layoutResult) ? (layoutResult as any).nodePositions : layoutResult?.nodes;
     if (!positions) return null;
 
     const position = positions[nodeId];
@@ -220,6 +255,8 @@ const Canvas: React.FC = () => {
     const isEditing = editingNodeId === nodeId;
     const isDropTarget = dropTarget === nodeId;
     const hasChildren = node.children.length > 0;
+    const isSearchMatch = searchMatchIds.has(nodeId);
+    const searchResult = searchResultsById.get(nodeId);
 
     // Get icon component
     const IconComponent = node.style.icon
@@ -230,7 +267,7 @@ const Canvas: React.FC = () => {
       <g
         key={nodeId}
         transform={`translate(${x}, ${y})`}
-        className={`mind-node ${isSelected ? 'selected' : ''} ${isDropTarget ? 'drop-target' : ''} ${isAnimating ? 'animating' : ''}`}
+        className={`mind-node ${isSelected ? 'selected' : ''} ${isDropTarget ? 'drop-target' : ''} ${isAnimating ? 'animating' : ''} ${isSearchMatch ? 'search-match' : ''}`}
         onClick={(e) => {
           e.stopPropagation();
           selectNode(nodeId);
@@ -261,8 +298,8 @@ const Canvas: React.FC = () => {
           height={NODE_HEIGHT}
           rx={8}
           fill={node.style.backgroundColor}
-          stroke={isSelected ? '#ffffff' : 'none'}
-          strokeWidth={isSelected ? 3 : 0}
+          stroke={isSelected ? '#ffffff' : isSearchMatch ? '#FFD700' : 'none'}
+          strokeWidth={isSelected ? 3 : isSearchMatch ? 2 : 0}
           className="node-bg"
         />
 
@@ -310,9 +347,12 @@ const Canvas: React.FC = () => {
             textAnchor="middle"
             dominantBaseline="middle"
             fill={node.style.textColor}
-            className="node-text"
+            className={`node-text ${isSearchMatch ? 'node-text--search' : ''}`}
           >
-            {node.text.length > 25 ? node.text.substring(0, 22) + '...' : node.text}
+            {isSearchMatch
+              ? (node.text.length > 40 ? node.text.substring(0, 37) + '...' : node.text)
+              : (node.text.length > 25 ? node.text.substring(0, 22) + '...' : node.text)
+            }
           </text>
         )}
 
@@ -343,10 +383,20 @@ const Canvas: React.FC = () => {
               toggleCollapse(nodeId);
             }}
           >
-            <circle cx={0} cy={15} r={10} fill="#4B5563" />
+            {/** Big hitbox */}
+            <rect
+              x={-20}
+              y={5}
+              width={40}
+              height={50}
+              fill="transparent"
+              pointerEvents="all"
+            />
+            {/** Visual button */}
+            <circle cx={0} cy={20} r={10} fill="#4B5563" />
             <text
               x={0}
-              y={15}
+              y={20}
               textAnchor="middle"
               dominantBaseline="middle"
               fill="#ffffff"
@@ -372,7 +422,7 @@ const Canvas: React.FC = () => {
   }
 
   // Get connections from layout
-  const connections = layoutResult.connections || layoutResult.edges || [];
+  const connections = layoutResult && 'connections' in layoutResult ? (layoutResult as any).connections : (layoutResult?.edges ?? []);
 
   return (
     <div 
@@ -390,25 +440,25 @@ const Canvas: React.FC = () => {
         style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
       >
         <defs>
-          <maker
+          <marker
             id="arrowhead"
-            makerWidth="10"
-            makerHeight="10"
+            markerWidth="10"
+            markerHeight="10"
             refX="9"
             refY="3"
             orient="auto"
           >
-            <poligon
+            <polygon
               points="0 0, 10 3, 0 6"
               fill="#6B7280"
             />
-          </maker>
+          </marker>
         </defs>
 
         <g transform={`translate(${viewport.panX}, ${viewport.panY}) scale(${viewport.zoom})`}>
           {/* Connections */}
           <g className="connections">
-            {layout.connections.map((conn: any, i: number) => {
+            {connections.map((conn: any, i: number) => {
               const path = conn.path || calculateCurvedPath(
                 conn.fromPos || { x: conn.from?.x || 0, y: conn.from?.y || 0 },
                 conn.toPos || { x: conn.to?.x || 0, y: conn.to?.y || 0 });
@@ -447,7 +497,7 @@ const Canvas: React.FC = () => {
 
         <button 
           className="reset-view-btn" 
-          onClick={resetView} 
+          onClick={resetViewport} 
           title="Resetear vista"
         >
           <LucideIcons.RotateCcw size={20} />

@@ -138,3 +138,27 @@
 .fit-to-screen-btn:active {
   transform: scale(0.95);
 }
+
+/* Search highlighting */
+.mind-node.search-match {
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
+}
+
+.mind-node.search-match .node-bg {
+  animation: search-pulse 2s sease-in-out infinite;
+}
+
+.node-text.node-text--search {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+@keyframes search-pulse {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.2);
+  }
+}

@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "dagre": "^0.8.5",
+    "fuse.js": "^7.1.0",
     "lucide-react": "^0.294.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -53,16 +54,23 @@
       "main": "dist/main/main.js"
     },
     "win": {
-      "target": ["nsis"],
+      "target": [
+        "nsis"
+      ],
       "icon": "build/icon.ico"
     },
     "mac": {
-      "target": ["dmg"],
+      "target": [
+        "dmg"
+      ],
       "icon": "build/icon.icns",
       "category": "public.app-category.productivity"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "icon": "build/icon.png",
       "category": "Office"
     }
