@@ -170,9 +170,7 @@ For the complete data schema, see [DATA_SCHEMA.md](./DATA_SCHEMA.md).
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read our [Contributing Guidelines](./CONTRIBUTING.md) for detailed information about our development process, branching strategy, and code standards.
-
-### Quick Start for Contributors
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
@@ -180,21 +178,12 @@ Contributions are welcome! Please read our [Contributing Guidelines](./CONTRIBUT
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-For more detailed information, see [CONTRIBUTING.md](./CONTRIBUTING.md).
-
 ---
 ## 💰 Help the development
 
 https://ko-fi.com/mindmapper
 
 ---
-
-## 📋 Project Information
-
-- **Current Version**: 0.1.0 (see [VERSION](./VERSION) file)
-- **Changelog**: [CHANGELOG.md](./CHANGELOG.md) - Complete history of changes
-- **Release Guide**: [RELEASE_GUIDE.md](./RELEASE_GUIDE.md) - How to create releases
-- **Contributing**: [CONTRIBUTING.md](./CONTRIBUTING.md) - Development guidelines
 
 ## 📄 License
 
