@@ -1,0 +1,118 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v0.1.0)'
+        required: true
+        type: string
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build application
+      run: npm run build
+      
+    - name: Package for Linux
+      run: npm run package:linux
+      
+    - name: Package for Windows
+      run: npm run package:win
+      
+    - name: Package for macOS
+      run: npm run package:mac
+      
+    - name: Upload Linux artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-build
+        path: build/*.AppImage
+        
+    - name: Upload Windows artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-build
+        path: build/*.exe
+        
+    - name: Upload macOS artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: macos-build
+        path: build/*.dmg
+        
+    - name: Extract changelog
+      id: changelog
+      run: |
+        # Extract changelog for the current version
+        VERSION=${GITHUB_REF#refs/tags/}
+        VERSION_NUMBER=${VERSION#v}
+        
+        # Extract changelog content for this version
+        CHANGELOG_CONTENT=$(awk "/^## \[$VERSION_NUMBER\]/,/^## \[/" CHANGELOG.md | head -n -1)
+        echo "changelog<<EOF" >> $GITHUB_OUTPUT
+        echo "$CHANGELOG_CONTENT" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.ref_name }}
+        name: Release ${{ github.ref_name }}
+        body: |
+          ## What's New in ${{ github.ref_name }}
+          
+          ${{ steps.changelog.outputs.changelog }}
+          
+          ## Downloads
+          
+          ### Linux
+          - **AppImage**: Download the `.AppImage` file for Linux distributions
+          - **DEB**: Download the `.deb` package for Debian/Ubuntu systems
+          
+          ### Windows
+          - **NSIS Installer**: Download the `.exe` installer for Windows
+          
+          ### macOS
+          - **DMG**: Download the `.dmg` package for macOS
+          
+          ## Installation Instructions
+          
+          1. Download the appropriate package for your operating system
+          2. Follow the installation instructions for your platform:
+             - **Linux**: Make the AppImage executable (`chmod +x`) or install the DEB package
+             - **Windows**: Run the installer as administrator
+             - **macOS**: Open the DMG and drag to Applications folder
+          
+          ## Support
+          
+          If you encounter any issues:
+          - 🐛 [Report a bug](https://github.com/${{ github.repository }}/issues)
+          - 💡 [Request a feature](https://github.com/${{ github.repository }}/issues)
+          - 📖 [Read the documentation](https://github.com/${{ github.repository }}/blob/main/README.md)
+        files: |
+          build/*.AppImage
+          build/*.deb
+          build/*.exe
+          build/*.dmg
+        draft: false
+        prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

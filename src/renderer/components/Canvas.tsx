@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as LucideIcons from 'lucide-react';
-import { useMindMapStore } from '../store/mindMapStore';
+import { useMindMapStore } from '../store/mindMapStore.js';
 import { calculateLayout, calculateCurvedPath, NODE_WIDTH, NODE_HEIGHT } from '../utils/layout';
 import { createLayout, buildTreeFromNodes } from '../utils/index';
 import { LayoutType, LayoutResults } from '../types/layout';
