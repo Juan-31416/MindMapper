@@ -67,45 +67,60 @@ mindmapper/
 │   │   └── preload.ts        # IPC API exposure
 │   │
 │   └── renderer/             # Renderer process (React/TypeScript)
-│       ├── main.tsx          # React entry point
 │       ├── App.tsx           # Root component
 │       ├── index.html        # main HTML
+│       ├── main.tsx          # React entry point
 │       │
 │       ├── components/       # React components
 │       │   ├── Canvas.tsx    # SVG canvas for mind map
-│       │   ├── Toolbar.tsx   # Top toolbar
-│       │   ├── NodeEditor.tsx # Right sidebar editor
-│       │   └── SearchBar.tsx # Search bar component
+│       │   ├── NodeEditor.tsx  # Right sidebar editor
+│       │   ├── SearchBar.tsx # Search bar component
+│       │   └── Toolbar.tsx   # Top tollbar
 │       │
 │       ├── hooks             # hooks porcess
 │       │   └── useFuzzySearch.ts # Searching hooks
 │       │
 │       ├── store/            # State management
+│       │   ├── aiConfigStore   # Zustand ai store
 │       │   └── mindMapStore.ts # Zustand store
 │       │
-│       ├── types/            # TypeScript type definitions
-│       │   ├── mindmap.ts    # Core data types
-│       │   ├── electron.d.ts # Electron API types
-│       │   └── search.ts     # Searching types
-│       │
-│       ├── utils/            # Utility functions
-│       │   ├── layout.ts     # Graph layout logic
-│       │   ├── theme.ts      # Theme management
-│       │   ├── exporters.ts  # Export functionality
-│       │   ├── importers.ts  # Import functionality
-│       │   └── searcher.ts   # Searching logic
+│       ├── styles/           # CSS stylesheets
+│       │   ├── App.css       # App layout
+│       │   ├── Canvas.css    # Canvas styles
+│       │   ├── edges.css     # Edges styles
+│       │   ├── index.css     # Global styles
+│       │   ├── NodeEditor.css # Editor styles
+│       │   ├── SearchBar.css # Search bar styles
+│       │   └── Toolbar.css   # Toolbar styles
 │       │
 │       ├── templates/        # Mind map templates
 │       │   └── brainstorming.ts
 │       │
-│       └── styles/           # CSS stylesheets
-│           ├── index.css     # Global styles
-│           ├── App.css       # App layout
-│           ├── Canvas.css    # Canvas styles
-│           ├── Toolbar.css   # Toolbar styles
-│           ├── NodeEditor.css # Editor styles
-│           ├── edges.css     # Edges styles
-│           └── SearchBar.css # Search bar styles
+│       ├── types/            # TypeScript type definitions
+│       │   ├── electron.d.ts # Electron API types
+│       │   ├── llm.ts        # Base LLM types
+│       │   ├── mindmap.ts    # Core data types
+│       │   ├── search.ts     # Searching types
+│       │   └── ai/           # AI types definitions
+│       │       ├── aiConfig.ts     # AI basic configuration
+│       │       ├── aiContracts.ts  # AI LLM contracts
+│       │       ├── aiMindmap.ts    # AI mindmap structure
+│       │       ├── aiOperations.ts # AI basic operation types
+│       │       └── index.ts        # barrel export
+│       │
+│       └── utils/            # Utility functions
+│           ├── exporters.ts  # Export functionality
+│           ├── importers.ts  # Import functionality
+│           ├── layout.ts     # Graph layout logic
+│           ├── searcher.ts   # Searching logic
+│           ├── theme.ts      # Theme management 
+│           └── ai/
+│               ├── defaults.ts         # AI defaults config
+│               ├── hhtpUtils.ts        # HTTP utilities
+│               ├── index.ts            # barrel export
+│               ├── LLMProvider.ts      # abstract interface
+│               ├── persistence.ts      # Persistence utils
+│               └── providerFactory.ts  # Provider factory utils
 │
 ├── dist/                     # Compiled output
 ├── release/                  # Packaged applications
