@@ -5,6 +5,7 @@
 import { LLMProvider } from "./LLMProvider";
 import { LLMConfig } from "../../types/ai/aiConfig";
 import { LLMError, LLMErrorCode } from "../../types/llm";
+import { AbacusRouteLLMProvider } from "./providers/AbacusRouteLLMProvider";
 
 /**
  * Create an apropiate LLM provider instace
@@ -14,13 +15,9 @@ import { LLMError, LLMErrorCode } from "../../types/llm";
  */
 export function createLLMProvider(config: LLMConfig): LLMProvider {
     switch (config.provider) {
-        case "abacus-route-llm":
-            // ToDo
-            throw new LLMError(
-                "Abacus RouteLLM provider not yet implemented",
-                LLMErrorCode.ConfigurationError,
-                { provider: config.provider }
-            );
+        case "abacus-route-llm":{
+            return new AbacusRouteLLMProvider(config);
+        }
         
         case "openai-compatible":
             // ToDo

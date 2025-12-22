@@ -22,3 +22,5 @@ export {
   validateUrl, 
   buildUrl 
 } from "./httpUtils";
+
+export { AbacusRouteLLMProvider } from "./providers/AbacusRouteLLMProvider";

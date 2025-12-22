@@ -13,7 +13,7 @@ export interface LLMResponse {
     content: string;
     raw?: unknown;
     metadata?: {
-        tokenUsed?: number;
+        tokensUsed?: number;
         model?: string;
         responseTimeMs?: number;
         requestId?: string;

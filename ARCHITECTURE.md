@@ -120,8 +120,10 @@ mindmapper/
 │               ├── index.ts            # barrel export
 │               ├── LLMProvider.ts      # abstract interface
 │               ├── persistence.ts      # Persistence utils
-│               └── providerFactory.ts  # Provider factory utils
-│
+│               ├── providerFactory.ts  # Provider factory utils
+│               └── providers/
+│                   └── AbacusRouteLLMProvider.ts
+│               
 ├── dist/                     # Compiled output
 ├── release/                  # Packaged applications
 ├── package.json              # Dependencies and scripts
