@@ -115,6 +115,7 @@ mindmapper/
 │           ├── searcher.ts   # Searching logic
 │           ├── theme.ts      # Theme management 
 │           └── ai/
+│               ├── AiMindmapService.ts # Specific AI domain service
 │               ├── defaults.ts         # AI defaults config
 │               ├── hhtpUtils.ts        # HTTP utilities
 │               ├── index.ts            # barrel export
@@ -122,7 +123,7 @@ mindmapper/
 │               ├── persistence.ts      # Persistence utils
 │               ├── providerFactory.ts  # Provider factory utils
 │               └── providers/
-│                   └── AbacusRouteLLMProvider.ts
+│                   └── AbacusRouteLLMProvider.ts   # Provider for RouteLLM
 │               
 ├── dist/                     # Compiled output
 ├── release/                  # Packaged applications

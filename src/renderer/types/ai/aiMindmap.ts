@@ -33,6 +33,7 @@ export interface AiMindMap {
     nodes: AiMindMapNode[];
     rootNodeId?: string;
     metadata?: AiMindMapMetadata;
+    title: string;
 }
 
 export const AI_MINDMAP_SCHEMA_VERSION = "0.1";
