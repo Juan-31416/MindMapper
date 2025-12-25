@@ -20,18 +20,18 @@ export interface AiAddNodeOperation {
 
 export interface AiUpdateNodeOperation {
     type: "update-node";
-    id: string;
+    nodeId: string;
     patch: Partial<AiMindMapNode>;
 }
 
 export interface AiDeleteNodeOperation {
     type: "delete-node";
-    id: string;
+    nodeId: string;
 }
 
 export interface AiMoveNodeOperation {
     type: "move-node";
-    id: string;
+    nodeId: string;
     newParentId: string | null;
     newOrder?: number;
 }

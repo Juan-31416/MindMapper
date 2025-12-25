@@ -12,6 +12,7 @@ export interface AiMindMapMetadata {
     language?: string;
     summary?: string;
     tags?: string[];
+    title?: string;
     extra?: Record<string, unknown>;
 }
 
@@ -19,7 +20,7 @@ export interface AiMindMapMetadata {
 export interface AiMindMapNode {
     id: string;
     label: string;
-    parentId: string | null;
+    parentId?: string | null;
     notes?: string;
     tags?: string[];
     order?: number;
@@ -33,7 +34,6 @@ export interface AiMindMap {
     nodes: AiMindMapNode[];
     rootNodeId?: string;
     metadata?: AiMindMapMetadata;
-    title: string;
 }
 
 export const AI_MINDMAP_SCHEMA_VERSION = "0.1";

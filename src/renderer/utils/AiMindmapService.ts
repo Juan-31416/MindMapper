@@ -551,7 +551,7 @@ export class DeafultAiMindmapService implements AiMindmapService {
         }
 
         return {
-            title: mindMap.title,
+            title: mindMap.metadata?.title ?? "Untitled Mind Map",
             rootNodeId: mindMap.rootNodeId ?? nodes[0]?.id ?? "root",
             nodes
         };

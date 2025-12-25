@@ -60,66 +60,69 @@ MindMapper is built as an Electron desktop application with a React-based user i
 ```
 mindmapper/
 ├── src/
-│   ├── main/                 # Main process (Node.js/Electron)
-│   │   └── main.ts           # Entry point, window management, IPC handlers
+│   ├── main/       # Main process (Node.js/Electron)
+│   │   └── main.ts     # Entry point, window management, IPC handlers
 │   │
-│   ├── preload/              # Preload scripts (bridge between main and renderer)
-│   │   └── preload.ts        # IPC API exposure
+│   ├── preload/    # Preload scripts (bridge between main and renderer)
+│   │   └── preload.ts  # IPC API exposure
 │   │
-│   └── renderer/             # Renderer process (React/TypeScript)
-│       ├── App.tsx           # Root component
-│       ├── index.html        # main HTML
-│       ├── main.tsx          # React entry point
+│   └── renderer/       # Renderer process (React/TypeScript)
+│       ├── App.tsx         # Root component
+│       ├── index.html      # main HTML
+│       ├── main.tsx        # React entry point
 │       │
-│       ├── components/       # React components
-│       │   ├── Canvas.tsx    # SVG canvas for mind map
+│       ├── components/     # React components
+│       │   ├── Canvas.tsx      # SVG canvas for mind map
 │       │   ├── NodeEditor.tsx  # Right sidebar editor
-│       │   ├── SearchBar.tsx # Search bar component
-│       │   └── Toolbar.tsx   # Top tollbar
+│       │   ├── SearchBar.tsx   # Search bar component
+│       │   └── Toolbar.tsx     # Top tollbar
 │       │
-│       ├── hooks             # hooks porcess
+│       ├── hooks           # hooks porcess
 │       │   └── useFuzzySearch.ts # Searching hooks
 │       │
-│       ├── store/            # State management
+│       ├── store/          # State management
 │       │   ├── aiConfigStore   # Zustand ai store
 │       │   └── mindMapStore.ts # Zustand store
 │       │
-│       ├── styles/           # CSS stylesheets
-│       │   ├── App.css       # App layout
-│       │   ├── Canvas.css    # Canvas styles
-│       │   ├── edges.css     # Edges styles
-│       │   ├── index.css     # Global styles
-│       │   ├── NodeEditor.css # Editor styles
-│       │   ├── SearchBar.css # Search bar styles
-│       │   └── Toolbar.css   # Toolbar styles
+│       ├── styles/         # CSS stylesheets
+│       │   ├── App.css         # App layout
+│       │   ├── Canvas.css      # Canvas styles
+│       │   ├── edges.css       # Edges styles
+│       │   ├── index.css       # Global styles
+│       │   ├── NodeEditor.css  # Editor styles
+│       │   ├── SearchBar.css   # Search bar styles
+│       │   └── Toolbar.css     # Toolbar styles
 │       │
 │       ├── templates/        # Mind map templates
 │       │   └── brainstorming.ts
 │       │
-│       ├── types/            # TypeScript type definitions
-│       │   ├── electron.d.ts # Electron API types
-│       │   ├── llm.ts        # Base LLM types
-│       │   ├── mindmap.ts    # Core data types
-│       │   ├── search.ts     # Searching types
-│       │   └── ai/           # AI types definitions
+│       ├── types/          # TypeScript type definitions
+│       │   ├── electron.d.ts   # Electron API types
+│       │   ├── llm.ts          # Base LLM types
+│       │   ├── mindmap.ts      # Core data types
+│       │   ├── search.ts       # Searching types
+│       │   └── ai/             # AI types definitions
 │       │       ├── aiConfig.ts     # AI basic configuration
 │       │       ├── aiContracts.ts  # AI LLM contracts
 │       │       ├── aiMindmap.ts    # AI mindmap structure
 │       │       ├── aiOperations.ts # AI basic operation types
 │       │       └── index.ts        # barrel export
 │       │
-│       └── utils/            # Utility functions
-│           ├── exporters.ts  # Export functionality
-│           ├── importers.ts  # Import functionality
-│           ├── layout.ts     # Graph layout logic
-│           ├── searcher.ts   # Searching logic
-│           ├── theme.ts      # Theme management 
+│       └── utils/              # Utility functions
+│           ├── exporters.ts    # Export functionality
+│           ├── importers.ts    # Import functionality
+│           ├── layout.ts       # Graph layout logic
+│           ├── searcher.ts     # Searching logic
+│           ├── theme.ts        # Theme management 
 │           └── ai/
+│               ├── adapters.ts         # Adapters AI <-> MindMap
 │               ├── AiMindmapService.ts # Specific AI domain service
 │               ├── defaults.ts         # AI defaults config
+│               ├── editApplier.ts      # Edits operation applicator
 │               ├── hhtpUtils.ts        # HTTP utilities
 │               ├── index.ts            # barrel export
 │               ├── LLMProvider.ts      # abstract interface
+│               ├── parsers.ts          # JSON validators
 │               ├── persistence.ts      # Persistence utils
 │               ├── providerFactory.ts  # Provider factory utils
 │               └── providers/

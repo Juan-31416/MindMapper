@@ -61,6 +61,21 @@ export interface MindMap {
 }
 
 /**************************************
+ *     ALIASES FOR AI ADAPTERS
+ ************************************** */
+
+// Alias para compatibilidad con adaptadores AI
+export type Node = MindMapNode;
+
+// Edge representa una conexión padre-hijo en el grafo
+export interface Edge {
+  id: string;
+  source: string; // parent node id
+  target: string; // child node id
+  type?: string;
+}
+
+/**************************************
  *              ACTIONS
  ************************************** */
 
