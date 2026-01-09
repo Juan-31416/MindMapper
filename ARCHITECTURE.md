@@ -75,14 +75,22 @@ mindmapper/
 │       │   ├── Canvas.tsx      # SVG canvas for mind map
 │       │   ├── NodeEditor.tsx  # Right sidebar editor
 │       │   ├── SearchBar.tsx   # Search bar component
-│       │   └── Toolbar.tsx     # Top tollbar
+│       │   ├── Toolbar.tsx     # Top tollbar
+│       │   └── ai/
+│       │       ├── AiAssistantButton.tsx   # Floating button
+│       │       ├── AiAssistantPanel.tsx    # Ai panel
+│       │       ├── AiAssistantTabs.tsx
+│       │       ├── AiSettings.tsx          # AiSettings
+│       │       └── AiErrorBanner.tsx       # Error management
 │       │
 │       ├── hooks           # hooks porcess
-│       │   └── useFuzzySearch.ts # Searching hooks
+│       │   ├── useAiAssistant      # Ai assistant hooks
+│       │   └── useFuzzySearch.ts   # Searching hooks
 │       │
 │       ├── store/          # State management
-│       │   ├── aiConfigStore   # Zustand ai store
-│       │   └── mindMapStore.ts # Zustand store
+│       │   ├── aiConfigStore   # Zustand ai config store
+│       │   ├── mindMapStore.ts # Zustand store
+│       │   └── aiUiStore.ts    # Zustand ai UI store
 │       │
 │       ├── styles/         # CSS stylesheets
 │       │   ├── App.css         # App layout

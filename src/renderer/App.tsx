@@ -7,7 +7,9 @@ import { useMindMapStore } from './store/mindMapStore';
 import { initializeTheme, toggleTheme as utilToggleTheme } from './utils/theme';
 import { createBlankTemplate } from './templates/brainstorming';
 import './styles/App.css';
-import { isSea } from 'node:sea';
+import { AiAssistantButton } from './components/ai/AiAssistantButton';
+import { AiAssistantPanel } from './components/ai/AiAssistantPanel';
+import { useAiUiStore } from './store/aiUiStore';
 
 const App: React.FC = () => {
   const {
@@ -234,6 +236,13 @@ const App: React.FC = () => {
           deleteNode(selectedNodeId);
         }
       }
+
+      // AI operations
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        useAiUiStore.getState().open();
+        return;
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -268,6 +277,9 @@ const App: React.FC = () => {
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
       />
+
+      <AiAssistantButton />
+      <AiAssistantPanel />
     </div>
   );
 };

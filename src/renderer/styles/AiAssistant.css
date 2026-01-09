@@ -1,0 +1,13 @@
+.ai-fab {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    font-size: 22px;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
