@@ -27,6 +27,7 @@ interface AiConfigActions {
     setModel: (model: string) => void;
     setLLMConfig: (config: Partial<LLMConfig>) => void;
     setLimits: (limits: Partial<AiLimits>) => void;
+    setLanguage: (language: string) => void;
     setConfig: (config:AiConfig) => void;
     resetToDefaults: () => void;
     loadConfig: () => Promise<void>;
@@ -211,6 +212,13 @@ export const useAiConfigStore = create<AiConfigStore> ((set, get) => ({
             error: null
         });
 
+        get().saveConfig();
+    },
+
+    setLanguage: (language: string) => {
+        const { config } = get();
+        const newConfig = { ...config, language };
+        set({ config: newConfig });
         get().saveConfig();
     },
 

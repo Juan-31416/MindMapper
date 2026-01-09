@@ -32,6 +32,7 @@ export interface AiConfig {
     version: string;
     llm: LLMConfig;
     limits: AiLimits;
+    language: string;
 }
 
 export interface AiConfigPersistence {

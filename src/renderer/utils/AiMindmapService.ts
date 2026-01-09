@@ -97,7 +97,7 @@ export interface AiMindmapService {
     ): Promise<AiMindMap | AiMindMapEditOperation[]>;
 }
 
-export class DeafultAiMindmapService implements AiMindmapService {
+export class DefaultAiMindmapService implements AiMindmapService {
     private readonly provider: LLMProvider;
     private readonly limits: AiLimits;
 

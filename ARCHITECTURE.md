@@ -115,16 +115,17 @@ mindmapper/
 │           ├── searcher.ts     # Searching logic
 │           ├── theme.ts        # Theme management 
 │           └── ai/
-│               ├── adapters.ts         # Adapters AI <-> MindMap
-│               ├── AiMindmapService.ts # Specific AI domain service
-│               ├── defaults.ts         # AI defaults config
-│               ├── editApplier.ts      # Edits operation applicator
-│               ├── hhtpUtils.ts        # HTTP utilities
-│               ├── index.ts            # barrel export
-│               ├── LLMProvider.ts      # abstract interface
-│               ├── parsers.ts          # JSON validators
-│               ├── persistence.ts      # Persistence utils
-│               ├── providerFactory.ts  # Provider factory utils
+│               ├── adapters.ts                 # Adapters AI <-> MindMap
+│               ├── aiMindMapOrchestrator.ts    # AI facade
+│               ├── AiMindmapService.ts         # Specific AI domain service
+│               ├── defaults.ts                 # AI defaults config
+│               ├── editApplier.ts              # Edits operation applicator
+│               ├── hhtpUtils.ts                # HTTP utilities
+│               ├── index.ts                    # barrel export
+│               ├── LLMProvider.ts              # abstract interface
+│               ├── parsers.ts                  # JSON validators
+│               ├── persistence.ts              # Persistence utils
+│               ├── providerFactory.ts          # Provider factory utils
 │               └── providers/
 │                   └── AbacusRouteLLMProvider.ts   # Provider for RouteLLM
 │               

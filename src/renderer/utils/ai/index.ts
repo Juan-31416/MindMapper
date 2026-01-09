@@ -24,3 +24,9 @@ export {
 } from "./httpUtils";
 
 export { AbacusRouteLLMProvider } from "./providers/AbacusRouteLLMProvider";
+
+export {
+  createMindMapFromPrompt,
+  convertFileToMindMap,
+  applySuggestedEdits,
+} from './aiMindMapOrchestrator'

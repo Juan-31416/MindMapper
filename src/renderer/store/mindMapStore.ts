@@ -7,6 +7,8 @@ import type { SearchState } from '../types/search';
 import { createSearchIndex, runSearch as runFuzzySearch, DEFAULT_SEARCH_CONFIG } from '../utils/searcher';
 import type Fuse from 'fuse.js';
 import type { MindMapNode as SearchableNode } from '../types/mindmap';
+import { AiMindMapEditOperation } from '../types/ai/aiOperations';
+import { applyAiEditsToMindMap } from '../utils/ai/editApplier';
 
 interface MindMapStore {
   currentMap: MindMap | null;
@@ -53,6 +55,8 @@ interface MindMapStore {
   setSearchQuery: (query: string) => void;
   clearSearch: () => void;
   runSearchNow: () => void;
+  setMindMap: (map: MindMap) => void;
+  applyAiEdits: (edits: AiMindMapEditOperation[]) => void;
 }
 
 /***********************************
@@ -201,6 +205,42 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
           isActive: false,
           lastUpdatedAt: null,
         },
+      });
+    },
+
+    setMindMap: (map: MindMap) => {
+      const searchIndex = createSearchIndex(map.nodes as Record<string, SearchableNode>);
+      set({
+        currentMap: map,
+        selectedNodeId: map.rootNodeId,
+        history: [deepClone(map)],
+        historyIndex: 0,
+        isDirty: true,
+        _searchIndex: searchIndex,
+        search: {
+          query: '',
+          results: [],
+          isSearching: false,
+          isActive: false,
+          lastUpdatedAt: null
+        },
+      });
+    },
+
+    applyAiEdits: (edits: AiMindMapEditOperation[]) => {
+      const { currentMap } = get();
+      if(!currentMap || edits.length === 0) return;
+
+      const updatedMap = applyAiEditsToMindMap(currentMap, edits);
+
+      // Reuse history + search
+      const searchIndex = createSearchIndex(updatedMap.nodes as Record<string, SearchableNode>);
+      set({
+        currentMap: updatedMap,
+        history: [...get().history.slice(0, get().historyIndex + 1), deepClone(updatedMap)],
+        historyIndex: get().historyIndex + 1,
+        isDirty: true,
+        _searchIndex: searchIndex,
       });
     },
 

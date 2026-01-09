@@ -27,7 +27,8 @@ export const DEFAULT_AI_LIMITS: AiLimits = {
 export const DEFAULT_AI_CONFIG: AiConfig = {
     version: AI_CONFIG_VERSION,
     llm: DEFAULT_LLM_CONFIG,
-    limits: DEFAULT_AI_LIMITS
+    limits: DEFAULT_AI_LIMITS,
+    language: "es,"
 };
 
 export const PROVIDER_PRESETS: Record<LLMProviderName, Partial<LLMConfig>> = {
