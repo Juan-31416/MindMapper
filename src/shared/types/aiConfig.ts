@@ -1,12 +1,12 @@
 /**
- * Configuration types for LLM providers and AI limits
+ * Shared AI configuration types between main and renderer
  */
 
 export type LLMProviderName =
-    | "abacus-route-llm"    // Default: RouteLLM from Abacus.AI
-    | "openai-compatible"   // Any OpenAI compatible API
-    | "local-http"          // HTTP exposed Local LLM server
-    | "custom";             // Free config personalized provider
+    | "abacus-route-llm"
+    | "openai-compatible"
+    | "local-http"
+    | "custom";
 
 export type LLMTransport = "direct" | "ipc";
 
@@ -49,5 +49,4 @@ export interface AiConfigValidationResult {
 }
 
 export const AI_CONFIG_VERSION = "1.0";
-
 export const AI_CONFIG_STORAGE_KEY = "mindmapper:aiConfig";

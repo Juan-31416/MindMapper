@@ -2,7 +2,7 @@
  * AI configuration persistence implementations
  */
 
-import { AiConfig, AiConfigPersistence, AI_CONFIG_STORAGE_KEY } from "../../types/ai/aiConfig";
+import { AiConfig, AiConfigPersistence, AI_CONFIG_STORAGE_KEY } from "../../../shared/types/aiConfig";
 
 
 // Implementation of persistence using localStorage for use in the renderer process

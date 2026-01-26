@@ -9,7 +9,7 @@ import {
     AiLimits,
     LLMProviderName,
     AiConfigValidationResult
-} from "../types/ai/aiConfig";
+} from "../../shared/types/aiConfig";
 import { DEFAULT_AI_CONFIG, applyProviderPreset } from "../utils/ai/defaults";
 import { createAiConfigPersistence } from "../utils/ai/persistence";
 

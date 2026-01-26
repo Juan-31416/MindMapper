@@ -22,11 +22,11 @@ export interface LLMHttpRequestOptions {
 export async function llmHttpRequest<T = unknown>(options: LLMHttpRequestOptions): Promise<T> {
     const {
         url,
-    method,
-    headers = {},
-    body,
-    timeoutMs = 30000,
-    apiKey
+        method,
+        headers = {},
+        body,
+        timeoutMs = 30000,
+        apiKey
     } = options;
 
     const controller = new AbortController();

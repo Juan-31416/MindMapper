@@ -1,5 +1,6 @@
 
 import { contextBridge, ipcRenderer } from 'electron';
+import type { LLMSendChatRequest, LLMSendChatResponse } from "../shared/ipc/llm";
 
 // =============================================================================
 // Types for IPC API
@@ -78,6 +79,9 @@ export interface ElectronAPI {
     onBeforeClose: (callback: () => void) => void;
     allowClose: () => Promise<FileOperationResult>;
   };
+  llm?: {
+    sendChat: (req: LLMSendChatRequest) => Promise<LLMSendChatResponse>;
+  };
 }
 
 // =============================================================================
@@ -128,6 +132,9 @@ const api: ElectronAPI = {
   window: {
     onBeforeClose: (callback) => ipcRenderer.on('window:beforeClose', callback),
     allowClose: () => ipcRenderer.invoke('window:allowClose'),
+  },
+  llm: {
+    sendChat: (req) => ipcRenderer.invoke('llm:sendChat', req),
   },
 };
 

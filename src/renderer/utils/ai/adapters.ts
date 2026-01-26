@@ -8,7 +8,7 @@
 
 import { AiMindMap, AiMindMapNode } from "../../types/ai/aiMindmap";
 import { MindMap, MindMapNode, Edge, DEFAULT_NODE_STYLE } from "../../types/mindmap";
-import { nonoid } from "nanoid";
+import { nanoid } from "nanoid";
 
 /**
  * Convert an AiMindMap to an internal MindMap.

@@ -28,11 +28,11 @@ import {
     LLMErrorCode,
     createSystemMessage,
     createUserMessage
- } from "../types/llm";
+ } from "../../shared/types/llm";
 import { 
     LLMConfig,
     AiLimits
- } from "../types/ai/aiConfig";
+ } from "../../shared/types/aiConfig";
 
 export type AiFileType =
     | "plain"

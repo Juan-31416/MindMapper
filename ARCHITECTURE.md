@@ -66,77 +66,89 @@ mindmapper/
 │   ├── preload/    # Preload scripts (bridge between main and renderer)
 │   │   └── preload.ts  # IPC API exposure
 │   │
-│   └── renderer/       # Renderer process (React/TypeScript)
-│       ├── App.tsx         # Root component
-│       ├── index.html      # main HTML
-│       ├── main.tsx        # React entry point
+│   ├── renderer/       # Renderer process (React/TypeScript)
+│   │   ├── App.tsx         # Root component
+│   │   ├── index.html      # main HTML
+│   │   ├── main.tsx        # React entry point
+│   │   │
+│   │   ├── components/     # React components
+│   │   │   ├── Canvas.tsx      # SVG canvas for mind map
+│   │   │   ├── NodeEditor.tsx  # Right sidebar editor
+│   │   │   ├── SearchBar.tsx   # Search bar component
+│   │   │   ├── Toolbar.tsx     # Top tollbar
+│   │   │   └── ai/
+│   │   │       ├── AiAssistantButton.tsx   # Floating button
+│   │   │       ├── AiAssistantPanel.tsx    # Ai panel
+│   │   │       ├── AiAssistantTabs.tsx
+│   │   │       ├── AiSettings.tsx          # AiSettings
+│   │   │       └── AiErrorBanner.tsx       # Error management
+│   │   │
+│   │   ├── hooks           # hooks porcess
+│   │   │   ├── useAiAssistant      # Ai assistant hooks
+│   │   │   └── useFuzzySearch.ts   # Searching hooks
+│   │   │
+│   │   ├── store/          # State management
+│   │   │   ├── aiConfigStore   # Zustand ai config store
+│   │   │   ├── mindMapStore.ts # Zustand store
+│   │   │   └── aiUiStore.ts    # Zustand ai UI store
+│   │   │
+│   │   ├── styles/         # CSS stylesheets
+│   │   │   ├── App.css         # App layout
+│   │   │   ├── Canvas.css      # Canvas styles
+│   │   │   ├── edges.css       # Edges styles
+│   │   │   ├── index.css       # Global styles
+│   │   │   ├── NodeEditor.css  # Editor styles
+│   │   │   ├── SearchBar.css   # Search bar styles
+│   │   │   └── Toolbar.css     # Toolbar styles
+│   │   │
+│   │   ├── templates/        # Mind map templates
+│   │   │   └── brainstorming.ts
+│   │   │
+│   │   ├── types/          # TypeScript type definitions
+│   │   │   ├── electron.d.ts       # Electron API types
+│   │   │   ├── electron-llm.d.ts   # Electron LLM API types
+│   │   │   ├── llm.ts              # Base LLM types
+│   │   │   ├── mindmap.ts          # Core data types
+│   │   │   ├── search.ts           # Searching types
+│   │   │   └── ai/                 # AI types definitions
+│   │   │       ├── aiConfig.ts     # AI basic configuration
+│   │   │       ├── aiContracts.ts  # AI LLM contracts
+│   │   │       ├── aiMindmap.ts    # AI mindmap structure
+│   │   │       ├── aiOperations.ts # AI basic operation types
+│   │   │       └── index.ts        # barrel export
+│   │   │
+│   │   └── utils/              # Utility functions
+│   │       ├── exporters.ts    # Export functionality
+│   │       ├── importers.ts    # Import functionality
+│   │       ├── layout.ts       # Graph layout logic
+│   │       ├── searcher.ts     # Searching logic
+│   │       ├── theme.ts        # Theme management 
+│   │       └── ai/
+│   │           ├── adapters.ts                 # Adapters AI <-> MindMap
+│   │           ├── aiMindMapOrchestrator.ts    # AI facade
+│   │           ├── AiMindmapService.ts         # Specific AI domain service
+│   │           ├── defaults.ts                 # AI defaults config
+│   │           ├── editApplier.ts              # Edits operation applicator
+│   │           ├── hhtpUtils.ts                # HTTP utilities
+│   │           ├── index.ts                    # barrel export
+│   │           ├── LLMProvider.ts              # abstract interface
+│   │           ├── parsers.ts                  # JSON validators
+│   │           ├── persistence.ts              # Persistence utils
+│   │           ├── providerFactory.ts          # Provider factory utils
+│   │           └── providers/
+│   │               ├── AbacusRouteLLMProvider.ts       # Provider for RouteLLM
+│   │               ├── MainProcessLLMProvider.ts       # Provider for main process
+│   │               ├── OpenAICompatibleProvider.ts     # 
+│   │               └── LocalHttpProvider.ts            # 
+│   │
+│   └── shared/
+│       ├── ipc/
+│       │   └── llm.ts      # Shared IPC contracts
 │       │
-│       ├── components/     # React components
-│       │   ├── Canvas.tsx      # SVG canvas for mind map
-│       │   ├── NodeEditor.tsx  # Right sidebar editor
-│       │   ├── SearchBar.tsx   # Search bar component
-│       │   ├── Toolbar.tsx     # Top tollbar
-│       │   └── ai/
-│       │       ├── AiAssistantButton.tsx   # Floating button
-│       │       ├── AiAssistantPanel.tsx    # Ai panel
-│       │       ├── AiAssistantTabs.tsx
-│       │       ├── AiSettings.tsx          # AiSettings
-│       │       └── AiErrorBanner.tsx       # Error management
-│       │
-│       ├── hooks           # hooks porcess
-│       │   ├── useAiAssistant      # Ai assistant hooks
-│       │   └── useFuzzySearch.ts   # Searching hooks
-│       │
-│       ├── store/          # State management
-│       │   ├── aiConfigStore   # Zustand ai config store
-│       │   ├── mindMapStore.ts # Zustand store
-│       │   └── aiUiStore.ts    # Zustand ai UI store
-│       │
-│       ├── styles/         # CSS stylesheets
-│       │   ├── App.css         # App layout
-│       │   ├── Canvas.css      # Canvas styles
-│       │   ├── edges.css       # Edges styles
-│       │   ├── index.css       # Global styles
-│       │   ├── NodeEditor.css  # Editor styles
-│       │   ├── SearchBar.css   # Search bar styles
-│       │   └── Toolbar.css     # Toolbar styles
-│       │
-│       ├── templates/        # Mind map templates
-│       │   └── brainstorming.ts
-│       │
-│       ├── types/          # TypeScript type definitions
-│       │   ├── electron.d.ts   # Electron API types
-│       │   ├── llm.ts          # Base LLM types
-│       │   ├── mindmap.ts      # Core data types
-│       │   ├── search.ts       # Searching types
-│       │   └── ai/             # AI types definitions
-│       │       ├── aiConfig.ts     # AI basic configuration
-│       │       ├── aiContracts.ts  # AI LLM contracts
-│       │       ├── aiMindmap.ts    # AI mindmap structure
-│       │       ├── aiOperations.ts # AI basic operation types
-│       │       └── index.ts        # barrel export
-│       │
-│       └── utils/              # Utility functions
-│           ├── exporters.ts    # Export functionality
-│           ├── importers.ts    # Import functionality
-│           ├── layout.ts       # Graph layout logic
-│           ├── searcher.ts     # Searching logic
-│           ├── theme.ts        # Theme management 
-│           └── ai/
-│               ├── adapters.ts                 # Adapters AI <-> MindMap
-│               ├── aiMindMapOrchestrator.ts    # AI facade
-│               ├── AiMindmapService.ts         # Specific AI domain service
-│               ├── defaults.ts                 # AI defaults config
-│               ├── editApplier.ts              # Edits operation applicator
-│               ├── hhtpUtils.ts                # HTTP utilities
-│               ├── index.ts                    # barrel export
-│               ├── LLMProvider.ts              # abstract interface
-│               ├── parsers.ts                  # JSON validators
-│               ├── persistence.ts              # Persistence utils
-│               ├── providerFactory.ts          # Provider factory utils
-│               └── providers/
-│                   └── AbacusRouteLLMProvider.ts   # Provider for RouteLLM
-│               
+│       └── types/
+│           ├── aiConfig.ts     # Shared configuration types
+│           └── llm.ts          # Shared llm types
+│              
 ├── dist/                     # Compiled output
 ├── release/                  # Packaged applications
 ├── package.json              # Dependencies and scripts

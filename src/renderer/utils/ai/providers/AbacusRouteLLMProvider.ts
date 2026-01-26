@@ -8,11 +8,11 @@ import {
     LLMResponse,
     LLMError,
     LLMErrorCode
-} from "../../../types/llm";
+} from "../../../../shared/types/llm";
 import { 
     LLMConfig, 
     LLMProviderName
-} from "../../../types/ai/aiConfig";
+} from "../../../../shared/types/aiConfig";
 import { 
     llmHttpRequest,
     buildUrl,

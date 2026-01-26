@@ -3,37 +3,32 @@
  */
 
 import { LLMProvider } from "./LLMProvider";
-import { LLMConfig } from "../../types/ai/aiConfig";
-import { LLMError, LLMErrorCode } from "../../types/llm";
+import { LLMConfig, LLMProviderName } from "../../../shared/types/aiConfig";
+import { LLMError, LLMErrorCode } from "../../../shared/types/llm";
+
 import { AbacusRouteLLMProvider } from "./providers/AbacusRouteLLMProvider";
+import { OpenAICompatibleProvider } from "./providers/OpenAICompatibleProvider";
+import { LocalHttpProvider } from "./providers/LocalHttpProvider";
+import { MainProcessLLMProvider } from "./providers/MainProcessLLMProvider";
 
 /**
  * Create an apropiate LLM provider instace
- * @param config - LLM provider configuration
- * @retrurns LLM provider instance
- * @throws {LLMError} if LLM provider not supported o invalid config
  */
 export function createLLMProvider(config: LLMConfig): LLMProvider {
+    if (config.transport === "ipc") {
+        return new MainProcessLLMProvider(config);
+    }
+
     switch (config.provider) {
         case "abacus-route-llm":{
             return new AbacusRouteLLMProvider(config);
         }
         
         case "openai-compatible":
-            // ToDo
-            throw new LLMError(
-                "OpenAI-compatible provider not yet implemented",
-                LLMErrorCode.ConfigurationError,
-                { provider: config.provider }
-            );
+            return new OpenAICompatibleProvider(config);
 
         case "local-http":
-            // ToDo
-            throw new LLMError(
-                "Local HTTP provider not yet implemented",
-                LLMErrorCode.ConfigurationError,
-                { provider: config.provider }
-            );
+            return new LocalHttpProvider(config);
 
         case "custom":
             // ToDo
@@ -54,8 +49,6 @@ export function createLLMProvider(config: LLMConfig): LLMProvider {
 
 /**
  * Verify if a provider is supported
- * @param providerName - Provider name to verify
- * @returns true if supported, false if not
  */
 export function isProviderSupported(providerName: string): boolean {
     const supportedProviders = [
@@ -70,7 +63,6 @@ export function isProviderSupported(providerName: string): boolean {
 
 /**
  * Obtain supported provider list
- * @returns Array with provider names
  */
 export function getSupportedProviders(): string[] {
     return [

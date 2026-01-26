@@ -1,5 +1,5 @@
 import { useAiUiStore } from "../../store/aiUiStore";
-import '../..styles/AiAssistant.css';
+import '../../styles/AiAssistant.css';
 
 export const AiAssistantButton = () => {
     const open = useAiUiStore(s => s.open);

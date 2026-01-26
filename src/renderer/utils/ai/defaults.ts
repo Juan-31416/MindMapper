@@ -2,10 +2,11 @@
  * AI configuration default values
  */
 
-import { LLMConfig, AiLimits, AiConfig, LLMProviderName, AI_CONFIG_VERSION } from "../../types/ai/aiConfig";
+import { LLMConfig, AiLimits, AiConfig, LLMProviderName, AI_CONFIG_VERSION } from "../../../shared/types/aiConfig";
 
 export const DEFAULT_LLM_CONFIG: LLMConfig = {
     provider: "abacus-route-llm",
+    transport: "direct",
     apiKey: "",                                 // Introduced by the user
     apiKeyStored: false,        
     baseUrl: "https://routellm.abacus.ai/v1",   // RouteLLM URL

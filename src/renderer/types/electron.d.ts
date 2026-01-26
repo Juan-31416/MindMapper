@@ -1,5 +1,7 @@
-// Type definitions for Electron IPC API
-// This file declares the global window.electronAPI interface
+/**
+ * Type definitions for Electron IPC API
+ * This file declares the global window.electronAPI interface
+ * */
 
 export interface FileOperationResult {
   success: boolean;
