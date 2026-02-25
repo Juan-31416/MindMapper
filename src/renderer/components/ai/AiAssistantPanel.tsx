@@ -5,11 +5,11 @@ import { AiSettings } from "./AiSettings";
 import { AiErrorBanner } from "./AiErrorBanner";
 
 export const AiAssistantPanel = () => {
-    const { isOpen, close, operation } = useAiUiStore();
+    const { viewMode, close, operation } = useAiUiStore();
     const ai = useAiAssistant();
     const [prompt, setPrompt] = useState('');
 
-    if (!isOpen) return null;
+    if (!viewMode) return null;
 
     return (
         <div className="ai-panel">
