@@ -89,7 +89,7 @@ function parseAiMindMapNode(
 
     const obj = json as Record<string, unknown>;
 
-    if (typeof obj.id !!== "string" || obj.id.trim().length === 0) {
+    if (typeof obj.id !== "string" || obj.id.trim().length === 0) {
         throw new ValidationError(
             `${path}.id must be a non-empty string`,
             `${path}.id`
