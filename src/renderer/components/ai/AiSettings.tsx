@@ -51,3 +51,13 @@ export const AiSettings = () => {
         </section>
     );
 };
+
+//import { AiSettings } from "./AiSettings";
+
+export const AiSettingsTab = () => {
+    return (
+        <div className="ai-settings-tab">
+            <AiSettings />
+        </div>
+    );
+};
