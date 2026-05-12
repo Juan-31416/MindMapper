@@ -44,7 +44,7 @@
     "appId": "com.mindmapper.app",
     "productName": "MindMapper",
     "directories": {
-      "output": "build"
+      "output": "release"
     },
     "files": [
       "dist/**/*",

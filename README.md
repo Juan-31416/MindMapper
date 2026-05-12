@@ -13,7 +13,7 @@
 
 MindMapper is a feature-rich mind mapping application designed to help you organize your thoughts, brainstorm ideas, and visualize complex concepts with ease.
 
-### Phase 1 Features (Current)
+### Phase 2 Features (Current)
 
 - **🎨 Visual Mind Mapping**
   - Intuitive drag-and-drop interface
@@ -26,6 +26,7 @@ MindMapper is a feature-rich mind mapping application designed to help you organ
   - Inline text editing
   - Undo/Redo support with full history
   - Node collapse/expand functionality
+  - Smart search functionality
 
 - **💾 File Management**
   - Save and load mind maps (.mindmap.json format)
@@ -56,12 +57,28 @@ MindMapper is a feature-rich mind mapping application designed to help you organ
 
 ## 📦 Installation
 
-### Prerequisites
+### Option A — Download a binary (recommended)
 
-- Node.js (v16 or higher)
-- npm or yarn
+Go to [Releases](https://github.com/Juan-31416/MindMapper/releases) and download the file for your platform.
 
-### Setup
+**Linux (AppImage):**
+```bash
+chmod +x MindMapper*.AppImage
+./MindMapper*.AppImage
+```
+
+**Linux (Debian/Ubuntu):**
+```bash
+sudo dpgk -i mindmapper*.deb
+```
+
+**Windows**: Run MindMapper Setup.exe and follow the installer.
+
+**macOS**: Open MindMapper.dmg, drag to Applications.
+
+### Option B - Build from source
+
+**Prerequisites**: Node.js v16+, npm
 
 1. Clone the repository:
 ```bash
@@ -76,7 +93,7 @@ npm install
 
 3. Run in development mode:
 ```bash
-npm run dev
+npm run dev          # development mode
 ```
 
 4. Build for production:
@@ -86,7 +103,7 @@ npm run build
 
 5. Package the application:
 ```bash
-npm run package
+npm run package      # build for current platform
 ```
 
 ---
@@ -125,7 +142,7 @@ For detailed architecture documentation, see [ARCHITECTURE.md](./ARCHITECTURE.md
 Mind maps are stored in JSON format with the `.mindmap.json` extension. The format supports:
 
 - Hierarchical node structure
-- Custom styling per node
+- Per-node custom styling
 - Metadata (creation date, last modified)
 - Full state preservation
 
@@ -147,23 +164,23 @@ For the complete data schema, see [DATA_SCHEMA.md](./DATA_SCHEMA.md).
 
 ## 🗺️ Roadmap
 
-### Phase 2 (Planned)
+### v0.3 (Next)
 - Radial view
 - Advanced fuzzy search
 - More templates (SWOT, Roadmap)
 - Local AES-GCM encryption
 - Automatic backups with versioning
 
-### Phase 3 (~6 months)
+### v0.4 (~6 months)
 - Additional views (organigram, fishbone, concept map)
 - More I/O formats (OPML, FreeMind .mm, PNG, SVG export)
 - Minimap and focus mode
 
-### Phase 4 (~9-12 months)
+### v1.0 (~9-12 months)
 - Full plugin system
 - Optional Java backend (Lucene, advanced PDF)
 - Full ARIA accessibility
-- AI assistant
+- AI assistant (local LLM + pluggable providers)
 - Anki card creation
 
 ---
