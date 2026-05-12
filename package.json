@@ -3,7 +3,10 @@
   "version": "0.2.0",
   "description": "A local-first mind mapping application",
   "main": "dist/main/main.js",
-  "author": "MindMapper Team",
+  "author": {
+    "name": "MindMapper Team",
+    "email": "jp.martintejeiro@qelronzal.com"
+  },
   "license": "MIT",
   "private": true,
   "scripts": {
