@@ -317,7 +317,7 @@ const Canvas: React.FC = () => {
     const isRoot = nodeId === currentMap!.rootNodeId;
 
     // Word-wrap
-    const PADDING_H = 48;
+    const PADDING_H = 50;
     const availableTextWidth = nodeW - PADDING_H;
     const lines = wrapText(node.text, availableTextWidth, isRoot);
     const totalTextHeight = lines.length * LINE_HEIGHT;
@@ -368,21 +368,22 @@ const Canvas: React.FC = () => {
         />
 
         {/* Icon - vertically centered */}
-        <g transform={`translate(${-nodeW / 2 + 20}, 0)`}>
+        <g transform={`translate(${-nodeW / 2 + 15}, 0)`}>
           <IconComponent 
-            size={20} 
+            size={18} 
             color={node.style.textColor} 
-            style={{ transform: 'translate(-8px, -8px)' }} 
+            x={-9}
+            y={-9} 
           />
         </g>
 
         {/* Text */}
         {isEditing ? (
           <foreignObject
-            x={-nodeW / 2 + 36}
-            y={-nodeH / 2 + 6}
-            width={nodeW - 44}
-            height={nodeH - 12}
+            x={-nodeW / 2 + 42}
+            y={-totalTextHeight / 2}
+            width={nodeW - 55}
+            height={totalTextHeight + 10}
           >
             <textarea
               // @ts-ignore - xmlnx needed for foreignObject
@@ -422,8 +423,8 @@ const Canvas: React.FC = () => {
           </foreignObject>
         ) : (
           <text
-            x={-nodeW / 2 + 36}
-            y={-totalTextHeight / 2 + LINE_HEIGHT * 0.8}
+            x={-nodeW / 2 + 45}
+            y={-(totalTextHeight / 2) + (LINE_HEIGHT * 0.75)}
             fill={node.style.textColor}
             fontSize={FONT_SIZE}
             fontFamily={FONT_FAMILY}
@@ -433,7 +434,7 @@ const Canvas: React.FC = () => {
             {lines.map((line,i) => (
               <tspan
                 key={i}
-                x={-nodeW / 2 + 36}
+                x={-nodeW / 2 + 42}
                 dy={i === 0 ? 0 : LINE_HEIGHT}
               >
                 {line}
@@ -445,9 +446,9 @@ const Canvas: React.FC = () => {
         {/* Status indicator */}
         {node.style.status && (
           <circle
-            cx={nodeW / 2 - 10}
-            cy={-nodeH / 2 + 10}
-            r={6}
+            cx={nodeW / 2 - 8}
+            cy={-nodeH / 2 + 8}
+            r={5}
             fill={
               node.style.status === 'done'
                 ? '#10B981'
@@ -462,7 +463,7 @@ const Canvas: React.FC = () => {
         {/* Collapse indicator */}
         {hasChildren && (
           <g
-            transform={`translate(0, ${NODE_HEIGHT / 2 - 5})`}
+            transform={`translate(0, ${nodeH / 2})`}
             className="collapse-toggle"
             onClick={(e) => {
               e.stopPropagation();

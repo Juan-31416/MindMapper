@@ -4,7 +4,6 @@ import { PositionedNode, PositionedEdge, LayoutResult, TreeNode, LayoutType } fr
 //import { buildTreeFromNodes } from '.';
 
 
-
 export const NODE_WIDTH = 200;
 export const NODE_HEIGHT = 60;
 const RANK_SEPARATION = 100;
@@ -12,7 +11,7 @@ const NODE_SEPARATION = 50;
 const FONT_SIZE = 13;          // px — must match Canvas CSS
 const FONT_FAMILY = 'Inter, system-ui, sans-serif';
 const LINE_HEIGHT = 20;        // px per line
-const PADDING_H = 48;          // horizontal padding (icon + margins)
+const PADDING_H = 44;          // horizontal padding (icon + margins)
 const PADDING_V = 20;          // vertical padding (top + bottom)
 const NODE_MIN_WIDTH = 160;    // px
 const NODE_MAX_WIDTH = 300;    // px — children
