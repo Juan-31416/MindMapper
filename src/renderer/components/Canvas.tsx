@@ -42,8 +42,10 @@ const Canvas: React.FC = () => {
       const node = currentMap.nodes[nodeId];
       if (!node) return '';
 
+      const contentHash = node.text;
       const childrenStructure = node.children.map(childId => getStructure(childId)).join(',');
-      return `${nodeId}:${node.collapsed}[${childrenStructure}]`;
+      
+      return `${nodeId}:${node.collapsed}:${contentHash}[${childrenStructure}]`;
     };
 
     return getStructure(currentMap.rootNodeId);
