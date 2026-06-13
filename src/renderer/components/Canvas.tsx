@@ -6,6 +6,49 @@ import { createLayout, buildTreeFromNodes } from '../utils/index';
 import { MindMapNode, LayoutType, LayoutResult } from '../types/mindmap';
 import '../styles/Canvas.css';
 
+
+const FONT_SIZE =13;
+const LINE_HEIGHT= 20;
+const FONT_FAMILY = 'Inter, system-ui,sans-serif';
+
+/**
+ * Splits text into lines that fit within maxWidth pixels.
+ * Uses Canvas 2D for accurate measurement — same logic as layout.ts.
+ */
+
+const wrapText = (text: string, maxWidth:number, isBold = false):string[] => {
+  let ctx: CanvasRenderingContext2D | null = null;
+  try {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    if (context) {
+      context.font = `${isBold ? 'bold ' : ''}${FONT_SIZE}px ${FONT_FAMILY}`;
+      ctx = context;
+    }
+  } catch {}
+
+  const words =text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    const testWidth = ctx ? ctx.measureText(testLine).width : testLine.length * (FONT_SIZE * 0.6);
+    
+    if (testWidth> maxWidth && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
+  }
+
+  if (currentLine) lines.push(currentLine);
+  
+  return lines;
+}
+
+
 const Canvas: React.FC = () => {
   const {
     currentMap,
@@ -166,25 +209,34 @@ const Canvas: React.FC = () => {
 
   // Fit to screen
   const fitToScreen = () => {
-    if (!layout || !containerRef.current) return;
+    if (!layoutResult || !containerRef.current) return;
 
     const container = containerRef.current.getBoundingClientRect();
-    const bounds = layoutResult?.size ? {
-      minX: 0,
-      minY: 0,
-      maxX: layoutResult.size?.width,
-      maxY: layoutResult.size?.height,
-    }: { minX: 0, minY: 0, maxX: 800, maxY: 600 }
 
-    const contentWidth = bounds.maxX - bounds.minX;
-    const contentHeight = bounds.maxY - bounds.minY;
+    // Use real layout bounds including dynamic node sizes
+    const positions = layoutResult.nodes ?? (layoutResult as any).nodePositions ?? {};
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+
+    Object.values(positions).forEach((pos: any) => {
+      const w = pos.width  ?? NODE_WIDTH;
+      const h = pos.height ?? NODE_HEIGHT;
+      minX = Math.min(minX, pos.x - w / 2);
+      maxX = Math.max(maxX, pos.x + w / 2);
+      minY = Math.min(minY, pos.y - h / 2);
+      maxY = Math.max(maxY, pos.y + h / 2);
+    });
+
+    if (!isFinite(minX)) return;
+
+    const contentWidth = maxX - minX;
+    const contentHeight = maxY - minY;
 
     const scaleX = container.width / (contentWidth + 100);
     const scaleY = container.height / (contentHeight + 100);
     const newZoom = Math.min(scaleX, scaleY, 1);
 
-    const centerX = (bounds.minX + bounds.maxX) / 2;
-    const centerY = (bounds.minY + bounds.maxY) / 2;
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
 
     setViewport({
       zoom: newZoom,
@@ -243,9 +295,13 @@ const Canvas: React.FC = () => {
     const position = positions[nodeId];
     if (!position) return null;
 
+    // Dynamic dimensions from layout result
+    const nodeW: number = (position as any).width ?? NODE_WIDTH;
+    const nodeH: number = (position as any).height ?? NODE_HEIGHT;
+
     // Get position with animation support
-    let x = (position as any).x || position.x;
-    let y = (position as any).y || position.y;
+    let x = (position as any).x ?? position.x;
+    let y = (position as any).y ?? position.y;
 
     if (isAnimating && prevPositions[nodeId]) {
       const prev = prevPositions[nodeId];
@@ -258,7 +314,13 @@ const Canvas: React.FC = () => {
     const isDropTarget = dropTarget === nodeId;
     const hasChildren = node.children.length > 0;
     const isSearchMatch = searchMatchIds.has(nodeId);
-    const searchResult = searchResultsById.get(nodeId);
+    const isRoot = nodeId === currentMap!.rootNodeId;
+
+    // Word-wrap
+    const PADDING_H = 48;
+    const availableTextWidth = nodeW - PADDING_H;
+    const lines = wrapText(node.text, availableTextWidth, isRoot);
+    const totalTextHeight = lines.length * LINE_HEIGHT;
 
     // Get icon component
     const IconComponent = node.style.icon
@@ -285,8 +347,8 @@ const Canvas: React.FC = () => {
             const rect = svgRef.current?.getBoundingClientRect();
             if (rect) {
               setDragOffset({
-                x: (e.clientX - rect.left - viewport.panX) / viewport.zoom - position.x,
-                y: (e.clientY - rect.top - viewport.panY) / viewport.zoom - position.y,
+                x: (e.clientX - rect.left - viewport.panX) / viewport.zoom - x,
+                y: (e.clientY - rect.top - viewport.panY) / viewport.zoom - y,
               });
             }
           }
@@ -294,10 +356,10 @@ const Canvas: React.FC = () => {
       >
         {/* Node background */}
         <rect
-          x={-NODE_WIDTH / 2}
-          y={-NODE_HEIGHT / 2}
-          width={NODE_WIDTH}
-          height={NODE_HEIGHT}
+          x={-nodeW / 2}
+          y={-nodeH / 2}
+          width={nodeW}
+          height={nodeH}
           rx={8}
           fill={node.style.backgroundColor}
           stroke={isSelected ? '#ffffff' : isSearchMatch ? '#FFD700' : 'none'}
@@ -305,34 +367,50 @@ const Canvas: React.FC = () => {
           className="node-bg"
         />
 
-        {/* Icon */}
-        <g transform={`translate(${-NODE_WIDTH / 2 + 15}, 0)`}>
+        {/* Icon - vertically centered */}
+        <g transform={`translate(${-nodeW / 2 + 20}, 0)`}>
           <IconComponent 
             size={20} 
             color={node.style.textColor} 
-            style={{ transform: 'translate(-10px, -10px)' }} 
+            style={{ transform: 'translate(-8px, -8px)' }} 
           />
         </g>
 
         {/* Text */}
         {isEditing ? (
           <foreignObject
-            x={-NODE_WIDTH / 2 + 40}
-            y={-NODE_HEIGHT / 2 + 10}
-            width={NODE_WIDTH - 80}
-            height={NODE_HEIGHT - 20}
+            x={-nodeW / 2 + 36}
+            y={-nodeH / 2 + 6}
+            width={nodeW - 44}
+            height={nodeH - 12}
           >
-            <input
-              type="text"
+            <textarea
+              // @ts-ignore - xmlnx needed for foreignObject
+              xmlns="http://www.w3.org/1999/xhtml"
               className="node-text-input"
               defaultValue={node.text}
               autoFocus
+              style={{
+                width: '100%',
+                height: '100%',
+                resize: 'none',
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+                color: node.style.textColor,
+                fontSize: `${FONT_SIZE}px`,
+                fontFamily: FONT_FAMILY,
+                fontWeight: isRoot ? 'bold' : 'normal',
+                lineHeight: `${LINE_HEIGHT}px`,
+                padding: 0,
+              }}
               onBlur={(e) => {
                 updateNodeText(nodeId, e.target.value);
                 setEditingNode(null);
               }}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
                   updateNodeText(nodeId, e.currentTarget.value);
                   setEditingNode(null);
                 } else if (e.key === 'Escape') {
@@ -344,25 +422,31 @@ const Canvas: React.FC = () => {
           </foreignObject>
         ) : (
           <text
-            x={10}
-            y={0}
-            textAnchor="middle"
-            dominantBaseline="middle"
+            x={-nodeW / 2 + 36}
+            y={-totalTextHeight / 2 + LINE_HEIGHT * 0.8}
             fill={node.style.textColor}
+            fontSize={FONT_SIZE}
+            fontFamily={FONT_FAMILY}
+            fontWeight={isRoot ? 'bold' : 'normal'}
             className={`node-text ${isSearchMatch ? 'node-text--search' : ''}`}
           >
-            {isSearchMatch
-              ? (node.text.length > 40 ? node.text.substring(0, 37) + '...' : node.text)
-              : (node.text.length > 25 ? node.text.substring(0, 22) + '...' : node.text)
-            }
+            {lines.map((line,i) => (
+              <tspan
+                key={i}
+                x={-nodeW / 2 + 36}
+                dy={i === 0 ? 0 : LINE_HEIGHT}
+              >
+                {line}
+              </tspan>
+            ))}
           </text>
         )}
 
         {/* Status indicator */}
         {node.style.status && (
           <circle
-            cx={NODE_WIDTH / 2 - 15}
-            cy={-NODE_HEIGHT / 2 + 15}
+            cx={nodeW / 2 - 10}
+            cy={-nodeH / 2 + 10}
             r={6}
             fill={
               node.style.status === 'done'
@@ -388,9 +472,9 @@ const Canvas: React.FC = () => {
             {/** Big hitbox */}
             <rect
               x={-20}
-              y={5}
+              y={2}
               width={40}
-              height={50}
+              height={24}
               fill="transparent"
               pointerEvents="all"
             />
