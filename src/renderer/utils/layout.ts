@@ -3,10 +3,108 @@ import { MindMapNode, Position, Connection } from '../types/mindmap';
 import { PositionedNode, PositionedEdge, LayoutResult, TreeNode, LayoutType } from '../types/mindmap';
 //import { buildTreeFromNodes } from '.';
 
+
+
 export const NODE_WIDTH = 200;
 export const NODE_HEIGHT = 60;
 const RANK_SEPARATION = 100;
 const NODE_SEPARATION = 50;
+const FONT_SIZE = 13;          // px — must match Canvas CSS
+const FONT_FAMILY = 'Inter, system-ui, sans-serif';
+const LINE_HEIGHT = 20;        // px per line
+const PADDING_H = 48;          // horizontal padding (icon + margins)
+const PADDING_V = 20;          // vertical padding (top + bottom)
+const NODE_MIN_WIDTH = 160;    // px
+const NODE_MAX_WIDTH = 300;    // px — children
+const ROOT_MAX_WIDTH = 320;    // px — root node
+
+/** -----------------------------------
+ *      NODE DIMENSION MEASUREMENT
+ * ------------------------------------ */
+
+export const measureNodeDimensions = (
+  text: string,
+  isRoot = false
+): { width: number; height: number } => {
+  const maxWidth = isRoot ? ROOT_MAX_WIDTH : NODE_MAX_WIDTH;
+
+  // Measure text using Canvas 2D API (available in both Electron renderer and browser)
+  let ctx: CanvasRenderingContext2D | null = null;
+  try {
+    const canvas = document.createElement('canvas');
+    ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.font = `${isRoot ? 'bold ' : ''}${FONT_SIZE}px ${FONT_FAMILY}`;
+    }
+  } catch {
+    // Fallback: estimate based on character count
+  }
+
+  const availableWidth = maxWidth - PADDING_H;
+
+  // Word-wrap simulation: split text into lines respecting availableWidth
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    const testWidth = ctx
+      ? ctx.measureText(testLine).width
+      : testLine.length * (FONT_SIZE * 0.6); // fallback: ~0.6px per char
+
+    if (testWidth > availableWidth && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
+  }
+  if (currentLine) lines.push(currentLine);
+
+  // Calculate actual content width (widest line)
+  let contentWidth = 0;
+  for (const line of lines) {
+    const lineWidth = ctx
+      ? ctx.measureText(line).width
+      : line.length * (FONT_SIZE * 0.6);
+    contentWidth = Math.max(contentWidth, lineWidth);
+  }
+
+  const width = Math.min(
+    Math.max(contentWidth + PADDING_H, NODE_MIN_WIDTH),
+    maxWidth
+  );
+  const height = lines.length * LINE_HEIGHT + PADDING_V;
+
+  return { width, height };
+};
+
+/**
+ * Pre-computes dimensions for all visible nodes in a map.
+ * Returns a Record<nodeId, {width, height}> to be passed to the layout engine.
+ */
+export const computeAllNodeDimensions = (
+  nodes: Record<string, MindMapNode>,
+  rootNodeId: string
+): Record<string, { width: number; height: number }> => {
+  const dimensions: Record<string, { width: number; height: number }> = {};
+
+  const traverse = (nodeId: string) => {
+    const node = nodes[nodeId];
+    if (!node) return;
+
+    dimensions[nodeId] = measureNodeDimensions(node.text, nodeId === rootNodeId);
+
+    if (!node.collapsed) {
+      node.children.forEach(childId => traverse(childId));
+    }
+  };
+
+  traverse(rootNodeId);
+  return dimensions;
+};
+
 
 /** -----------------------------------
  *           HIERARCHICAL LAYOUT
@@ -25,7 +123,8 @@ export interface HierarchicalLayoutResult {
 
 export const calculateHierarchicalLayout = (
   nodes: Record<string, MindMapNode>,
-  rootNodeId: string
+  rootNodeId: string,
+  nodeDimensions?: Record<string, { width: number, height: number }>
 ): HierarchicalLayoutResult => {
   const g = new dagre.graphlib.Graph();
   
@@ -50,8 +149,11 @@ export const calculateHierarchicalLayout = (
     
     visibleNodes.add(nodeId);
     
+    // Use pre-computed dimensions if available, else, measure on the fly
+    const dims = nodeDimensions?.[nodeId] ?? measureNodeDimensions(node.text, nodeId === rootNodeId);
+
     // Add node to graph
-    g.setNode(nodeId, { width: NODE_WIDTH, height: NODE_HEIGHT });
+    g.setNode(nodeId, { width: dims.width, height: dims.height });
     
     // If not collapsed, process children
     const isCollapsed = node.collapsed === true;
@@ -114,6 +216,9 @@ export const calculateHierarchicalLayout = (
   };
 };
 
+
+
+
 /** -----------------------------------
  *           RADIAL LAYOUT
  * ------------------------------------ */
@@ -140,8 +245,11 @@ export class RadialLayout {
   private nodeHeight: number;
   private subtreeSizes: Map<string, number>;
   private subtreeAngles: Map<string, SubtreeInfo>;
+  private nodeDimensions: Record<string, { width: number; height: number }>;
 
-  constructor(config: RadialConfig){
+  constructor(config: RadialConfig & {
+    nodeDimensions?:Record<string, { width: number; height: number }>;
+  }){
     this.r0 = config.r0 ?? 100;
     this.levelGap = config.levelGap ?? 150;
     this.angleStart = config.angleStart ?? -Math.PI / 2;
@@ -149,6 +257,14 @@ export class RadialLayout {
     this.nodeHeight = config.nodeHeight;
     this.subtreeSizes = new Map();
     this.subtreeAngles = new Map();
+    this.nodeDimensions = config.nodeDimensions ?? {};
+  }
+
+  private getNodeDims(nodeId: string):{ width: number; height: number }{
+    return this.nodeDimensions[nodeId] ??{
+      width: this.nodeWidth,
+      height: this.nodeHeight,
+    };
   }
 
   layout(root: TreeNode): LayoutResult {
@@ -258,17 +374,19 @@ export class RadialLayout {
     const x = radius * Math.cos(midAngle);
     const y = radius * Math.sin(midAngle);
 
+    const dims =this.getNodeDims(node.id);
+
     nodes[node.id] = {
       id: node.id,
       x,
       y,
-      width: this.nodeWidth,
-      height: this.nodeHeight,
+      width: dims.width,
+      height: dims.height,
       collapsed: node.collapsed
     };
 
-    updateBounds(x - this.nodeWidth / 2, y - this.nodeHeight / 2);
-    updateBounds(x + this.nodeWidth / 2, y + this.nodeHeight / 2);
+    updateBounds(x - dims.width / 2, y - dims.height / 2);
+    updateBounds(x + dims.width / 2, y + dims.height / 2);
 
     if (node.collapsed || node.children.length === 0) {
       return;
@@ -438,6 +556,17 @@ export const createLayout = (
   tree: TreeNode,
   config: UnifiedLayoutConfig
 ): LayoutResult => {
+  // -- Step 0: flatten tree back to nodes map for dimension computation --
+  const nodesMap: Record<string, MindMapNode> = {};
+  const flatten = (node: TreeNode) => {
+    if (node.data) nodesMap[node.id] =node.data;
+    node.children.forEach(child => flatten(child));
+  };
+  flatten(tree);
+
+  // --Step 1: compute all dimensions in a single pass --
+  const nodeDimensions = computeAllNodeDimensions(nodesMap, tree.id);
+
   if (config.type === 'radial') {
     const radialLayout = new RadialLayout({
       nodeWidth: config.nodeWidth || NODE_WIDTH,
@@ -445,37 +574,25 @@ export const createLayout = (
       r0: config.r0,
       levelGap: config.levelGap,
       angleStart: config.angleStart,
+      nodeDimensions,
     });
 
     return radialLayout.layout(tree);
   } else {
-    // Convert TreeNode back to MindMapNode format for hierarchical
-    const nodes: Record<string, MindMapNode> = {}
-
-    const flatten = (node: TreeNode) => {
-      if (node.data) {
-        nodes[node.id] = node.data;
-      };
-
-      if (node.children) {
-        node.children.forEach(child => flatten(child));
-      }
-    };
-
-    flatten(tree);
-
-    const result = calculateHierarchicalLayout(nodes, tree.id);
+    // -- Hierarchical --
+    const result = calculateHierarchicalLayout(nodesMap, tree.id, nodeDimensions);
 
     // Convert to LayoutResult format
     return {
       nodes: Object.entries(result.nodePositions).reduce((acc, [id, pos]) => {
+        const dims = nodeDimensions[id] ?? { width: NODE_WIDTH,height: NODE_HEIGHT };
         acc[id] = {
           id,
           x: pos.x,
           y: pos.y,
-          width: NODE_WIDTH,
-          height: NODE_HEIGHT,
-          collapsed: nodes[id]?.collapsed || false
+          width: dims.width,
+          height: dims.height,
+          collapsed: nodesMap[id]?.collapsed || false
         };
         return acc;
       }, {} as Record<string, PositionedNode>),
