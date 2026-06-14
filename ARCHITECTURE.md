@@ -72,7 +72,9 @@ mindmapper/
 │       ├── index.html        # main HTML
 │       │
 │       ├── components/       # React components
+│       │   ├── BorderPopover.tsx    # Borer selector pop-up window
 │       │   ├── Canvas.tsx    # SVG canvas for mind map
+│       │   ├── ColorPopover.tsx    # Color selector pop-up window
 │       │   ├── Toolbar.tsx   # Top toolbar
 │       │   ├── NodeEditor.tsx # Right sidebar editor
 │       │   └── SearchBar.tsx # Search bar component
@@ -89,26 +91,32 @@ mindmapper/
 │       │   └── search.ts     # Searching types
 │       │
 │       ├── utils/            # Utility functions
-│       │   ├── layout.ts     # Graph layout logic
-│       │   ├── theme.ts      # Theme management
+│       │   ├── colorUtils.ts # Changes in colors
 │       │   ├── exporters.ts  # Export functionality
 │       │   ├── importers.ts  # Import functionality
-│       │   └── searcher.ts   # Searching logic
+│       │   ├── index.ts      # Index tree node
+│       │   ├── layout.ts     # Graph layout logic
+│       │   ├── searcher.ts   # Searching logic
+│       │   └── theme.ts      # Theme management
 │       │
 │       ├── templates/        # Mind map templates
 │       │   └── brainstorming.ts
 │       │
 │       └── styles/           # CSS stylesheets
-│           ├── index.css     # Global styles
 │           ├── App.css       # App layout
 │           ├── Canvas.css    # Canvas styles
-│           ├── Toolbar.css   # Toolbar styles
-│           ├── NodeEditor.css # Editor styles
 │           ├── edges.css     # Edges styles
-│           └── SearchBar.css # Search bar styles
+│           ├── index.css     # Global styles
+│           ├── NodeEditor.css # Editor styles
+│           ├── SearchBar.css # Search bar styles
+│           └── Toolbar.css   # Toolbar styles
 │
 ├── dist/                     # Compiled output
 ├── release/                  # Packaged applications
+├── docs/
+│   └── issues/               # Issues documentation
+│       ├── ADR-001-issue-6-dynamic-node-sizing.md 
+│       └── ADR-002-issue-5-node-background-personalization.md 
 ├── package.json              # Dependencies and scripts
 ├── tsconfig.json             # TypeScript configuration
 ├── vite.config.ts            # Vite configuration
