@@ -393,7 +393,7 @@ const Canvas: React.FC = () => {
         <g transform={`translate(${-nodeW / 2 + 15}, 0)`}>
           <IconComponent 
             size={18} 
-            color={node.style.textColor} 
+            color={textColor} 
             x={-9}
             y={-9} 
           />
@@ -420,7 +420,7 @@ const Canvas: React.FC = () => {
                 background: 'transparent',
                 border: 'none',
                 outline: 'none',
-                color: node.style.textColor,
+                color: textColor,
                 fontSize: `${FONT_SIZE}px`,
                 fontFamily: FONT_FAMILY,
                 fontWeight: isRoot ? 'bold' : 'normal',
@@ -447,7 +447,7 @@ const Canvas: React.FC = () => {
           <text
             x={-nodeW / 2 + 45}
             y={-(totalTextHeight / 2) + (LINE_HEIGHT * 0.75)}
-            fill={node.style.textColor}
+            fill={textColor}
             fontSize={FONT_SIZE}
             fontFamily={FONT_FAMILY}
             fontWeight={isRoot ? 'bold' : 'normal'}
@@ -497,7 +497,7 @@ const Canvas: React.FC = () => {
               x={-20}
               y={2}
               width={40}
-              height={24}
+              height={50}
               fill="transparent"
               pointerEvents="all"
             />

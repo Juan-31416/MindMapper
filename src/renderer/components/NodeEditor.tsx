@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { useMindMapStore } from '../store/mindMapStore';
 import { DEFAULT_COLORS } from '../types/mindmap';
@@ -74,6 +74,13 @@ const NodeEditor: React.FC = () => {
     }
   };
 
+  const [showColorPopover, setShowColorPopover] = useState(false);
+  const [showBorderPopover, setShowBorderPopover] = useState(false);
+  const colorAnchorRef = useRef<HTMLButtonElement | null>(null);
+  const borderAnchorRef = useRef<HTMLButtonElement | null>(null);
+
+  const patchStyle = (patch: Partial<any>) =>updateNodeStyle(selectedNodeId, patch);
+
   return (
     <div className="node-editor">
       <div className="editor-header">
@@ -129,58 +136,52 @@ const NodeEditor: React.FC = () => {
           </div>
         </div>
 
-        {/* Color Picker */}
-        <div className="editor-section">
-          <h4>Background Color</h4>
-          <div className="color-picker">
-            {DEFAULT_COLORS.map((color) => (
+        {/* Color Picker + Border Controls */}
+        <div className="editor-section compact-controls">
+          <h4>Apariencia</h4>
+          <div className="compact-row">
+            <div className="compact-item">
+              <label className="label-small">Color</label>
               <button
-                key={color}
-                className={`color-option ${selectedNode.style.backgroundColor === color ? 'selected' : ''}`}
-                style={{ backgroundColor: color }}
-                onClick={() => handleColorChange(color)}
-                title={color}
+                ref={colorAnchorRef}
+                className="color-swatch-btn"
+                style={{ backgroundColor: selectedNode.style.backgroundColor }}
+                onClick={() => setShowColorPopover(v => !v)}
+                title="Abrir paleta de color"
               />
-            ))}
-          </div>
-        </div>
-
-        {/* Sección de Fondo en NodeEditor.tsx */}
-        <div className="editor-section">
-          <h4>Fondo</h4>
-          <div className="control-group">
-            <label>
-              <input 
-                type="checkbox" 
-                checked={selectedNode.style.backgroundType === 'none'} 
-                onChange={(e) => updateNodeStyle(selectedNode.id, { 
-                  backgroundType: e.target.checked ? 'none' : 'solid' 
-                })}
-              /> Sin fondo
-            </label>
-          </div>
-          
-          {selectedNode.style.backgroundType !== 'none' && (
-            <div className="control-group">
-              <label>Opacidad ({selectedNode.style.backgroundOpacity}%)</label>
-              <input 
-                type="range" min="0" max="100" 
-                value={selectedNode.style.backgroundOpacity}
-                onChange={(e) => updateNodeStyle(selectedNode.id, { 
-                  backgroundOpacity: parseInt(e.target.value) 
-                })}
-              />
+              {showColorPopover && (
+                <div className="popover-wrapper">
+                  <ColorPopover
+                    style={selectedNode.style}
+                    onChange={patchStyle}
+                    onClose={() => setShowColorPopover(false)}
+                  />
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        {/* Sección de Bordes */}
-        <div className="editor-section">
-          <h4>Estilo de Borde</h4>
-          <div className="border-style-picker">
-            <button onClick={() => updateNodeStyle(selectedNode.id, { borderStyle: 'none' })}>Ninguno</button>
-            <button onClick={() => updateNodeStyle(selectedNode.id, { borderStyle: 'bottom' })}>Inferior</button>
-            <button onClick={() => updateNodeStyle(selectedNode.id, { borderStyle: 'full' })}>Completo</button>
+            <div className="compact-item">
+              <label className="label-small">Borde</label>
+              <button
+                ref={borderAnchorRef}
+                className="border-btn"
+                onClick={() => setShowBorderPopover(v => !v)}
+                title="Editar borde"
+              >
+                {selectedNode.style.borderStyle === 'none' ? 'Ninguno' :
+                selectedNode.style.borderStyle === 'bottom' ? 'Inferior' : 'Completo'}
+              </button>
+
+              {showBorderPopover && (
+                <div className="popover-wrapper">
+                  <BorderPopover
+                    style={selectedNode.style}
+                    onChange={patchStyle}
+                    onClose={() => setShowBorderPopover(false)}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
