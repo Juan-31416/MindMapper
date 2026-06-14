@@ -3,6 +3,8 @@ import * as LucideIcons from 'lucide-react';
 import { useMindMapStore } from '../store/mindMapStore';
 import { DEFAULT_COLORS } from '../types/mindmap';
 import '../styles/NodeEditor.css';
+import ColorPopover from './ColorPopover';
+import BorderPopover from './BorderPopover';
 
 // Common icons for mind mapping
 const COMMON_ICONS = [
@@ -140,6 +142,45 @@ const NodeEditor: React.FC = () => {
                 title={color}
               />
             ))}
+          </div>
+        </div>
+
+        {/* Sección de Fondo en NodeEditor.tsx */}
+        <div className="editor-section">
+          <h4>Fondo</h4>
+          <div className="control-group">
+            <label>
+              <input 
+                type="checkbox" 
+                checked={selectedNode.style.backgroundType === 'none'} 
+                onChange={(e) => updateNodeStyle(selectedNode.id, { 
+                  backgroundType: e.target.checked ? 'none' : 'solid' 
+                })}
+              /> Sin fondo
+            </label>
+          </div>
+          
+          {selectedNode.style.backgroundType !== 'none' && (
+            <div className="control-group">
+              <label>Opacidad ({selectedNode.style.backgroundOpacity}%)</label>
+              <input 
+                type="range" min="0" max="100" 
+                value={selectedNode.style.backgroundOpacity}
+                onChange={(e) => updateNodeStyle(selectedNode.id, { 
+                  backgroundOpacity: parseInt(e.target.value) 
+                })}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Sección de Bordes */}
+        <div className="editor-section">
+          <h4>Estilo de Borde</h4>
+          <div className="border-style-picker">
+            <button onClick={() => updateNodeStyle(selectedNode.id, { borderStyle: 'none' })}>Ninguno</button>
+            <button onClick={() => updateNodeStyle(selectedNode.id, { borderStyle: 'bottom' })}>Inferior</button>
+            <button onClick={() => updateNodeStyle(selectedNode.id, { borderStyle: 'full' })}>Completo</button>
           </div>
         </div>
 

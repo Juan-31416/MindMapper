@@ -5,6 +5,8 @@
  ************************************** */
 
 export type NodeStatus = 'pending' | 'in-progress' | 'done';
+export type BackgroundType = 'solid' | 'none';
+export type BorderStyle = 'none' | 'bottom' | 'full';
 
 export interface NodeStyle {
   backgroundColor: string;
@@ -15,8 +17,11 @@ export interface NodeStyle {
   fontSize?: number;
   fontWeight?: 'normal' | 'bold';
   padding?: number;
-  icon?: string; // Emoji or Lucide icon name
+  icon?: string;
   status?: NodeStatus;
+  backgroundOpacity: number; // 0-100
+  backgroundType: BackgroundType;
+  borderStyle: BorderStyle;
 }
 
 /**************************************
@@ -103,6 +108,9 @@ export const DEFAULT_NODE_STYLE: NodeStyle = {
   textColor: '#FFFFFF',
   icon: 'Circle',
   status: 'pending',
+  backgroundOpacity: 100,
+  backgroundType: 'solid',
+  borderStyle: 'full',
 };
 
 /**************************************

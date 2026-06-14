@@ -5,6 +5,7 @@ import { calculateLayout, calculateCurvedPath, NODE_WIDTH, NODE_HEIGHT } from '.
 import { createLayout, buildTreeFromNodes } from '../utils/index';
 import { MindMapNode, LayoutType, LayoutResult } from '../types/mindmap';
 import '../styles/Canvas.css';
+import { getContrastTextColor } from '../utils/colorUtils';
 
 
 const FONT_SIZE =13;
@@ -327,6 +328,13 @@ const Canvas: React.FC = () => {
       ? (LucideIcons as any)[node.style.icon] || LucideIcons.Circle
       : LucideIcons.Circle;
 
+    // Backgorung color
+    const bgColor =node.style.backgroundColor;
+    const opacity = node.style.backgroundType === 'none' ? 0 : (node.style.backgroundOpacity ?? 100) / 100;
+    const textColor = getContrastTextColor(node.style);
+    const bStyle = node.style.borderStyle ?? 'full';
+    const bColor = node.style.borderColor || node.style.backgroundColor;
+
     return (
       <g
         key={nodeId}
@@ -361,11 +369,25 @@ const Canvas: React.FC = () => {
           width={nodeW}
           height={nodeH}
           rx={8}
-          fill={node.style.backgroundColor}
-          stroke={isSelected ? '#ffffff' : isSearchMatch ? '#FFD700' : 'none'}
-          strokeWidth={isSelected ? 3 : isSearchMatch ? 2 : 0}
+          fill={bgColor}
+          fillOpacity={opacity}
+          stroke={bStyle === 'full' ? bColor : (isSelected ? '#ffffff' : 'none')}
+          strokeWidth={bStyle === 'full' ? (node.style.borderWidth || 2) : (isSelected ? 3 : 0)}
           className="node-bg"
         />
+
+        {/* Lower border - Conditioned */}
+        {bStyle === 'bottom' && (
+          <line
+            x1={-nodeW / 2}
+            y1={nodeH / 2}
+            x2={nodeW / 2}
+            y2={nodeH / 2}
+            stroke={bColor}
+            strokeWidth={3}
+            strokeLinecap="round"
+          />
+        )}
 
         {/* Icon - vertically centered */}
         <g transform={`translate(${-nodeW / 2 + 15}, 0)`}>
