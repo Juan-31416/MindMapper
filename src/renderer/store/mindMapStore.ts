@@ -1,5 +1,14 @@
 import { create } from 'zustand';
-import { MindMap, MindMapNode, NodeStyle, ViewportState, LayoutType, DEFAULT_NODE_STYLE } from '../types/mindmap';
+import { 
+  MindMap, 
+  MindMapNode, 
+  NodeStyle, 
+  ViewportState, 
+  LayoutType, 
+  DEFAULT_NODE_STYLE,
+  FavoriteColor,
+  MAX_FAVORITE_COLORS,
+} from '../types/mindmap';
 import { serializeToJSON, preparePDFExport, getExportBaseName } from '../utils/exporters';
 import { importFromContent } from '../utils/importers';
 import { buildTreeFromNodes, calculateLayout, createLayout, NODE_WIDTH, NODE_HEIGHT } from '../utils/layout';
@@ -7,6 +16,9 @@ import type { SearchState } from '../types/search';
 import { createSearchIndex, runSearch as runFuzzySearch, DEFAULT_SEARCH_CONFIG } from '../utils/searcher';
 import type Fuse from 'fuse.js';
 import type { MindMapNode as SearchableNode } from '../types/mindmap';
+import { normalizeHex } from '../utils/colorUtils';
+
+
 
 interface MindMapStore {
   currentMap: MindMap | null;
@@ -21,6 +33,9 @@ interface MindMapStore {
   isDirty: boolean;
   search: SearchState;
   _searchIndex?: Fuse<SearchableNode> | null;
+
+  // Favorite colors
+  favoriteColors: FavoriteColor[];
 
   // Actions
   createNewMap: (name: string) => void;
@@ -53,7 +68,11 @@ interface MindMapStore {
   setSearchQuery: (query: string) => void;
   clearSearch: () => void;
   runSearchNow: () => void;
+  addFavoriteColor: (color:string, userId?: string) => void;
+  removeFavoriteColor: (color: string, userId?: string) => void;
 }
+
+
 
 /***********************************
  *           UTILITIES
@@ -61,22 +80,28 @@ interface MindMapStore {
 
 const STORAGE_KEY = 'mindmapper-preferences';
 
+interface StoredPreferences {
+  layout?: LayoutType;
+  theme?: 'light' | 'dark';
+  favoriteColors?: FavoriteColor[];
+}
+
 const loadPreferences = () => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : {};
+    return stored ? (JSON.parse(stored) as StoredPreferences) : {};
   } catch (error) {
     console.error('Error loading preferences: ', error);
     return {};
   }
 };
 
-const savePreferences = (preferences: { layout?: LayoutType; theme?: 'light' | 'dark'}) => {
+const savePreferences = (patch: Partial<StoredPreferences>): void => {
   try {
     const current = loadPreferences();
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ ...current, ...preferences })
+      JSON.stringify({ ...current, ...patch })
     );
   } catch (error) {
     console.error('Error saving preferences: ', error);
@@ -113,6 +138,8 @@ const safeNumber = (value: number | undefined, fallback: number): number => {
   const candidate = value ?? fallback;
   return isFinite(candidate) ? candidate : fallback;
 };
+
+
 
 /*************************************
  *                STORE
@@ -152,6 +179,9 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
     historyIndex: -1,
     currentFilePath: null,
     isDirty: false,
+
+    // Favorites
+    favoriteColors:preferences.favoriteColors ?? [],
 
     // Initial search
     search: {
@@ -389,6 +419,7 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
         });
     },
 
+
     /****************************************
      *         SELECTION & EDITING
      **************************************** */
@@ -397,6 +428,7 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
     
     setEditingNode: (nodeId: string | null) => set({ editingNodeId: nodeId }),
     
+
     /***************************************
      *             VIEWPORT
     **************************************** */
@@ -467,6 +499,7 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
         console.error('Error in focusOnNode:', error);
       }
     },
+
     
     /*******************************************
      *           UI PREFERENCES
@@ -481,6 +514,7 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
       set({ theme });
       savePreferences({ theme });
     },
+
 
     /**********************************************
      *                    HISTORY
@@ -523,6 +557,7 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
       return historyIndex < history.length - 1;
     },
 
+
     /*******************************************
      *               UTILITY
      ******************************************* */
@@ -530,9 +565,48 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
     setCurrentFilePath: (path) => set({ currentFilePath: path }),
     setIsDirty: (isDirty) => set({ isDirty }),
     
+
+    /********************************************
+     *            FAVORITE COLORS 
+     ******************************************** */ 
+
+    addFavoriteColor: (color: string, userId?: string) => {
+      const normalized = normalizeHex(color);
+      const { favoriteColors } = get();
+
+      // Ignore duplicates
+      const isDuplicate = favoriteColors.some((f) => f.color === normalized && f.userId === userId);
+      if (isDuplicate) return;
+
+      const newEntry: FavoriteColor = {
+        color: normalized,
+        addedAt: Date.now(),
+        ...(userId !== undefined && { userId }),
+      };
+
+      const trimmed = favoriteColors.length >= MAX_FAVORITE_COLORS ? favoriteColors.slice(1) : favoriteColors;
+
+      const updated = [...trimmed, newEntry];
+      set({ favoriteColors:updated });
+      savePreferences({ favoriteColors: updated });
+    },
+
+    removeFavoriteColor: (color: string, userId?: string) => {
+      const normalized = normalizeHex(color);
+      const { favoriteColors } = get();
+
+      const updated = favoriteColors.filter(
+        (f) => !(f.color === normalized && f.userId === userId)
+      );
+
+      set({ favoriteColors: updated });
+      savePreferences({ favoriteColors: updated });
+    },
+
+
     /********************************************
      *             FILE OPETATIONS 
-     ******************************************** */ 
+     ******************************************** */
 
     saveMap: async () => {
       const { currentMap, currentFilePath } = get();

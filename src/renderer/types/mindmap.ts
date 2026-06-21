@@ -126,7 +126,7 @@ export const DEFAULT_COLORS= STANDARD_PALETTE[1];   // Blues row
 export interface FavoriteColor {
   color: string;      // Hex string
   addedAt: number;    // Unix timestampt (ms)
-  userId: string;     // Per-user scoping - Future
+  userId?: string;     // Per-user scoping - Future
 }
 
 export interface UserColorPreferences{
