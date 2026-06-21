@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import '../styles/ColorPopover.css';
 import { HexColorPicker } from 'react-colorful';
 import { useMindMapStore } from '../store/mindMapStore';
@@ -89,18 +90,39 @@ const ColorPopover: React.FC<Props> = ({ anchorRect, style, onChange, onClose })
   }, [onClose]);
 
   // Poitioning of popover
-  const popoverStyle = useCallback((): React.CSSProperties => {
-    if(!anchorRect) return {};
+  const [computedStyle, setComputedStyle] = useState<React.CSSProperties>({});
+
+  useEffect(() => {
+    if (!anchorRect) return;
 
     const GAP = 8;
     const POPOVER_W = 260;
-    const top = anchorRect.bottom + GAP;
+    const POPOVER_H = 650;
+    const VIEWPORT_H = window.innerHeight;
+    const VIEWPORT_W = window.innerWidth;
+
+    let top = anchorRect.bottom + GAP;
     let left = anchorRect.left;
-    if (left + POPOVER_W > window.innerWidth - 8) {
-      left = window.innerWidth - POPOVER_W - 8;
+
+    if (top + POPOVER_H > VIEWPORT_H - 16) {
+      const spaceAbove = anchorRect.top - GAP;
+      top = spaceAbove > POPOVER_H
+        ? anchorRect.top - POPOVER_H - GAP
+        : VIEWPORT_H - POPOVER_H - 16;
     }
 
-    return { top, left };
+    if (left + POPOVER_W > VIEWPORT_W - 16) {
+      left = VIEWPORT_W - POPOVER_W - 16;
+    }
+
+    if (top < 16) top = 16;
+
+    setComputedStyle({
+      top,
+      left,
+      maxHeight: 'calc(100vh - 32px)',
+      overflowY: 'auto',
+    });
   }, [anchorRect]);
 
   // Apply color
@@ -158,8 +180,8 @@ const ColorPopover: React.FC<Props> = ({ anchorRect, style, onChange, onClose })
   };
 
 
-  return (
-    <div className="color-popover" ref={ref} style={popoverStyle()} role='dialog' aria-label='Selector de color'>
+  return createPortal(
+    <div className="color-popover" ref={ref} style={computedStyle} role='dialog' aria-label='Selector de color'>
       {/** Header */}
       <div className='color-popover__header'>
         <span>🎨 Color de fondo</span>
@@ -172,7 +194,7 @@ const ColorPopover: React.FC<Props> = ({ anchorRect, style, onChange, onClose })
         </button>
       </div>
 
-      {/* ── 1. Paleta estándar ── */}
+      {/** Standard Palete */}
       <div className="color-popover__section">
         <span className="color-popover__section-label">Paleta</span>
         <div className="color-popover__palette">
@@ -193,7 +215,7 @@ const ColorPopover: React.FC<Props> = ({ anchorRect, style, onChange, onClose })
 
       <div className="color-popover__divider" />
 
-      {/* ── 2. Picker avanzado ── */}
+      {/** Picker */}
       <div className="color-popover__section">
         <span className="color-popover__section-label">Picker</span>
         <div className="color-popover__picker">
@@ -201,7 +223,7 @@ const ColorPopover: React.FC<Props> = ({ anchorRect, style, onChange, onClose })
         </div>
       </div>
 
-      {/* ── 3. Inputs HEX / RGB ── */}
+      {/** Inputs HEX / RGB */}
       <div className="color-popover__inputs">
         <div className="color-popover__input-group">
           <label htmlFor="cp-hex">HEX</label>
@@ -237,7 +259,7 @@ const ColorPopover: React.FC<Props> = ({ anchorRect, style, onChange, onClose })
 
       <div className="color-popover__divider" />
 
-      {/* ── 4. Favoritos ── */}
+      {/** Favoritos */}
       <div className="color-popover__section">
         <div className="color-popover__favorites-header">
           <span className="color-popover__section-label">★ Favoritos</span>
@@ -290,7 +312,7 @@ const ColorPopover: React.FC<Props> = ({ anchorRect, style, onChange, onClose })
 
       <div className="color-popover__divider" />
 
-      {/* ── 5. Opacidad + Sin fondo ── */}
+      {/** Opacity + no background */}
       <div className="color-popover__section">
         <label className="color-popover__no-bg-row">
           <input
@@ -322,7 +344,8 @@ const ColorPopover: React.FC<Props> = ({ anchorRect, style, onChange, onClose })
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

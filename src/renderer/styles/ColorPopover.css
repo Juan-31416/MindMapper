@@ -12,6 +12,8 @@
     flex-direction: column;
     gap: 12px;
     user-select: none;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
   }
   
   /* ── Header ── */
@@ -298,4 +300,13 @@
   }
   .dark .color-popover__divider {
     background: #374151;
+  }
+
+  .color-popover::-webkit-scrollbar {
+    width: 5px;
+  }
+  
+  .color-popover::-webkit-scrollbar-thumb {
+    background-color: var(--border, #e5e7eb);
+    border-radius: 10px;
   }

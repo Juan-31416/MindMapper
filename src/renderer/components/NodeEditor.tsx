@@ -79,6 +79,9 @@ const NodeEditor: React.FC = () => {
   const colorAnchorRef = useRef<HTMLButtonElement | null>(null);
   const borderAnchorRef = useRef<HTMLButtonElement | null>(null);
 
+  const [colorAnchorRect, setColorAnchorRect] = useState<DOMRect | null>(null);
+  const [borderAnchorRect, setBorderAnchorRect] = useState<DOMRect | null>(null);
+
   const patchStyle = (patch: Partial<any>) =>updateNodeStyle(selectedNodeId, patch);
 
   return (
@@ -146,17 +149,19 @@ const NodeEditor: React.FC = () => {
                 ref={colorAnchorRef}
                 className="color-swatch-btn"
                 style={{ backgroundColor: selectedNode.style.backgroundColor }}
-                onClick={() => setShowColorPopover(v => !v)}
+                onClick={() => {
+                  setColorAnchorRect(colorAnchorRef.current?.getBoundingClientRect() ?? null);
+                  setShowColorPopover(v => !v);
+                }}
                 title="Abrir paleta de color"
               />
               {showColorPopover && (
-                <div className="popover-wrapper">
-                  <ColorPopover
-                    style={selectedNode.style}
-                    onChange={patchStyle}
-                    onClose={() => setShowColorPopover(false)}
-                  />
-                </div>
+                <ColorPopover
+                  anchorRect={colorAnchorRect}
+                  style={selectedNode.style}
+                  onChange={patchStyle}
+                  onClose={()=> setShowColorPopover(false)}
+                />
               )}
             </div>
 
@@ -165,7 +170,10 @@ const NodeEditor: React.FC = () => {
               <button
                 ref={borderAnchorRef}
                 className="border-btn"
-                onClick={() => setShowBorderPopover(v => !v)}
+                onClick={() => {
+                  setBorderAnchorRect(borderAnchorRef.current?.getBoundingClientRect() ?? null);
+                  setShowBorderPopover(v =>!v);
+                }}
                 title="Editar borde"
               >
                 {selectedNode.style.borderStyle === 'none' ? 'Ninguno' :
@@ -173,13 +181,11 @@ const NodeEditor: React.FC = () => {
               </button>
 
               {showBorderPopover && (
-                <div className="popover-wrapper">
-                  <BorderPopover
-                    style={selectedNode.style}
-                    onChange={patchStyle}
-                    onClose={() => setShowBorderPopover(false)}
-                  />
-                </div>
+                <BorderPopover
+                  style={selectedNode.style}
+                  onChange={patchStyle}
+                  onClose={() => setShowBorderPopover(false)}
+                />
               )}
             </div>
           </div>
