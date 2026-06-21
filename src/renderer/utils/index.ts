@@ -1,5 +1,3 @@
-// src/renderer/utils/layout/index.ts
-
 import { 
     LayoutType,
     LayoutResult,
