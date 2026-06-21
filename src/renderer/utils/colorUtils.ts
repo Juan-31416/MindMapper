@@ -47,6 +47,9 @@ export const isValidHex = (value: string): boolean => /^#?([a-f\d]{3}|[a-f\d]{6}
 
 export const isValidRgb = (value:string): boolean => /^rgba?\(\s*(\d{1,3}%?\s*,\s*){2}\d{1,3}%?\s*(,\s*(0|1|0?\.\d+)\s*)?\)$/i.test(value.trim());
 
+export const isValidRgbComponents = (r: number, g: number, b: number): boolean =>
+    [r, g, b].every(v => Number.isInteger(v) && v >= 0 && v <= 255)
+
 export const isValidColorInput = (value: string): boolean => isValidHex(value) || isValidRgb(value);
 
 
