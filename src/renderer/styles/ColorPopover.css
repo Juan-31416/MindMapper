@@ -147,6 +147,76 @@
     flex-shrink: 0;
   }
   
+  /* ── Picker flotante (sub-popover) ── */
+.color-picker-float {
+  position: fixed;
+  z-index: 1100;
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.color-picker-float .react-colorful {
+  width: 220px !important;
+  height: 160px !important;
+}
+
+.color-picker-float .react-colorful__hue {
+  height: 14px;
+  border-radius: 7px;
+  margin-top: 6px;
+}
+
+.color-picker-float .react-colorful__pointer {
+  width: 18px;
+  height: 18px;
+}
+
+/* ── Botón que abre el picker ── */
+.color-popover__picker-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 7px;
+  background: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-secondary, #6b7280);
+  transition: background 0.15s, border-color 0.15s;
+  width: 100%;
+}
+
+.color-popover__picker-trigger:hover {
+  background: var(--surface-hover, #f3f4f6);
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.color-popover__picker-trigger-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid rgba(0,0,0,0.15);
+  flex-shrink: 0;
+}
+
+/* Dark mode additions */
+.dark .color-picker-float {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+.dark .color-popover__picker-trigger:hover {
+  background: #374151;
+}
+
   /* ── Favorites ── */
   .color-popover__favorites-header {
     display: flex;

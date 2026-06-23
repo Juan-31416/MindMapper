@@ -182,6 +182,7 @@ const NodeEditor: React.FC = () => {
 
               {showBorderPopover && (
                 <BorderPopover
+                  anchorRect={colorAnchorRect}
                   style={selectedNode.style}
                   onChange={patchStyle}
                   onClose={() => setShowBorderPopover(false)}
