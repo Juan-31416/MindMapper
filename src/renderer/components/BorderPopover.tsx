@@ -47,9 +47,12 @@ const FloatPicker: React.FC<FloatPickerProps> = ({ color, anchorRect, onChange, 
   const ref = useRef<HTMLDivElement>(null);
 
   const style = useCallback((): React.CSSProperties => {
-    const W = 240; const H = 210; const GAP = 6;
+    const W = 240; 
+    const H = 210; 
+    const GAP = 6;
     let top = anchorRect.top;
     let left = anchorRect.right + GAP;
+
     if (left + W > window.innerWidth - 8) left = anchorRect.left - W - GAP;
     if (top + H > window.innerHeight - 8) top = window.innerHeight - H - 8;
     if (top < 8) top = 8;
@@ -65,6 +68,7 @@ const FloatPicker: React.FC<FloatPickerProps> = ({ color, anchorRect, onChange, 
       document.addEventListener('mousedown', onDocClick);
       document.addEventListener('keydown', onEsc);
     }, 50);
+
     return () => {
       clearTimeout(timer);
       document.removeEventListener('mousedown', onDocClick);
@@ -135,6 +139,7 @@ const BorderPopover: React.FC<Props> = ({ anchorRect, style, onChange, onClose }
     const onEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('mousedown', onDocClick);
     document.addEventListener('keydown', onEsc);
+    
     return () => {
       document.removeEventListener('mousedown', onDocClick);
       document.removeEventListener('keydown', onEsc);
