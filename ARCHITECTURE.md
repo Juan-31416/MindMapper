@@ -71,18 +71,26 @@ mindmapper/
 │       ├── App.tsx           # Root component
 │       ├── index.html        # main HTML
 │       │
-│       ├── components/       # React components
-│       │   ├── BorderPopover.tsx    # Borer selector pop-up window
-│       │   ├── Canvas.tsx    # SVG canvas for mind map
+│       ├── components/             # React components
+│       │   ├── BorderPopover.tsx   # Borer selector pop-up window
 │       │   ├── ColorPopover.tsx    # Color selector pop-up window
-│       │   ├── Toolbar.tsx   # Top toolbar
-│       │   ├── NodeEditor.tsx # Right sidebar editor
-│       │   └── SearchBar.tsx # Search bar component
+│       │   ├── NodeEditor.tsx      # Right sidebar editor
+│       │   ├── SearchBar.tsx       # Search bar component
+│       │   ├── Toolbar.tsx         # Top toolbar
+│       │   └── Canvas.tsx                  # SVG canvas for mind map
+│       │       ├── CanvasNode.tsx
+│       │       ├── CanvasEdges.tsx
+│       │       ├── CanvasViewport.tsx
+│       │       ├── Canvas.tsx              # Clean orchestrator
+│       │       ├── index.ts                # Unified re-exports
+│       │       └── Canvas.tsx              # SVG canvas for mind map
+│       │           ├── HierarchicalView.tsx
+│       │           └── RadialView.tsx
 │       │
-│       ├── hooks             # hooks porcess
-│       │   └── useFuzzySearch.ts # Searching hooks
+│       ├── hooks                   # hooks porcess
+│       │   └── useFuzzySearch.ts   # Searching hooks
 │       │
-│       ├── store/            # State management
+│       ├── store/              # State management
 │       │   └── mindMapStore.ts # Zustand store
 │       │
 │       ├── types/            # TypeScript type definitions
@@ -95,9 +103,17 @@ mindmapper/
 │       │   ├── exporters.ts  # Export functionality
 │       │   ├── importers.ts  # Import functionality
 │       │   ├── index.ts      # Index tree node
-│       │   ├── layout.ts     # Graph layout logic
+│       │   ├── theme.ts      # Theme management
 │       │   ├── searcher.ts   # Searching logic
-│       │   └── theme.ts      # Theme management
+│       │   ├── edges/                      # Edge logic
+│       │   │   ├── edgeInersection.ts      # Unified re-exports
+│       │   │   ├── edgePath.ts             # Calculate curved path
+│       │   │   └── index.ts                # Unified re-exports
+│       │   └── layout/              # Graph layout logic
+│       │       ├── hierarchical.ts  # Hierarchical layout
+│       │       ├── index.ts         # Unified re-exports
+│       │       ├── radial.ts        # Radial layout
+│       │       └── shared.ts        # Types + constants + measureNodeDimensions
 │       │
 │       ├── templates/        # Mind map templates
 │       │   └── brainstorming.ts
@@ -105,6 +121,7 @@ mindmapper/
 │       └── styles/           # CSS stylesheets
 │           ├── App.css       # App layout
 │           ├── Canvas.css    # Canvas styles
+│           ├── ColorPopover  # Color and border popover styles
 │           ├── edges.css     # Edges styles
 │           ├── index.css     # Global styles
 │           ├── NodeEditor.css # Editor styles
@@ -116,7 +133,8 @@ mindmapper/
 ├── docs/
 │   └── issues/               # Issues documentation
 │       ├── ADR-001-issue-6-dynamic-node-sizing.md 
-│       └── ADR-002-issue-5-node-background-personalization.md 
+│       ├── ADR-002-issue-5-node-background-personalization.md
+│       └── ADR-003-issue-12-advance-color-management.md 
 ├── package.json              # Dependencies and scripts
 ├── tsconfig.json             # TypeScript configuration
 ├── vite.config.ts            # Vite configuration
