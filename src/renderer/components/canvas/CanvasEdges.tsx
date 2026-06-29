@@ -10,7 +10,7 @@
 
 import React from 'react';
 import { LayoutResult } from '../../types/mindmap';
-import { buildEdgePath, calculateCurvedPath, EdgeStyle } from '../../utils/edges';
+import { buildEdgePath, EdgeStyle } from '../../utils/edges';
 
 
 
@@ -28,13 +28,15 @@ interface CanvasEdgesProps {
 export const ArrowheadMarker: React.FC = () => (
   <marker
     id="arrowhead"
-    markerWidth="10"
-    markerHeight="10"
-    refX="9"
-    refY="3"
-    orient="auto"
+    viewBox="0 0 10 10"
+    refX="8"
+    refY="5"
+    markerWidth="8"
+    markerHeight="8"
+    orient="auto-start-reverse"
+    markerUnits="userSpaceOnUse"
   >
-    <polygon points="0 0, 10 3, 0 6" fill="#6B7280" />
+    <path d="M0, 0 L10, 5 L0, 10 Z" fill="#6B7280" />
   </marker>
 );
 

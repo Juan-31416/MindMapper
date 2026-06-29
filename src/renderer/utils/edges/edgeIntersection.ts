@@ -11,8 +11,6 @@ export interface Point {
 }
 
 export interface Rect extends Point {
-  x: number;
-  y: number;
   width:  number;
   height: number;
 }
