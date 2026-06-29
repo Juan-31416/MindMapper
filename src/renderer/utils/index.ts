@@ -3,48 +3,48 @@ import {
     LayoutResult,
     LayoutConfig,
     TreeNode,
-    MindMapNode } from '../types/mindmap';
+    MindMapNode 
+} from '../types/mindmap';
+
 import { 
     calculateLayout,
     createLayout,
     buildTreeFromNodes,
-    calculateCurvedPath,
     NODE_WIDTH,
     NODE_HEIGHT,
     RadialLayout
- } from './layout'
+} from './layout/index';
 
- // Re-export main functions
- export {
-   calculateLayout,
-   createLayout,
-   buildTreeFromNodes,
-   calculateCurvedPath,
-   NODE_WIDTH,
-   NODE_HEIGHT,
-   RadialLayout
- };
- 
- // Re-export types
- export type {
-   LayoutType,
-   LayoutResult,
-   LayoutConfig,
-   TreeNode
- };
+import { calculateCurvedPath } from './edges/index';
 
- /***************************************
-  *    ENHANCED UTILITY FUNCTIONS
-  *************************************** */
 
- /**
- * Build a TreeNode structure from an array of nodes
- * @param nodes - Array of MindMapNode or any node structure with id, children, collapsed
- * @param rootId - ID of the root node
- * @param nodeWidth - Width of each node (default: 200)
- * @param nodeHeight - Height of each node (default: 80)
- * @returns TreeNode structure ready for layout
- */
+
+// Re-export main functions
+export {
+  calculateLayout,
+  createLayout,
+  buildTreeFromNodes,
+  calculateCurvedPath,
+  NODE_WIDTH,
+  NODE_HEIGHT,
+  RadialLayout
+};
+
+// Re-export types
+export type {
+  LayoutType,
+  LayoutResult,
+  LayoutConfig,
+  TreeNode
+};
+
+
+
+/***************************************
+ *    ENHANCED UTILITY FUNCTIONS
+ *************************************** */
+
+// Build a TreeNode structure from an array of nodes
 
 export function buildTreeFromNodeArray(
     nodes: any[],
@@ -58,12 +58,11 @@ export function buildTreeFromNodeArray(
     function buildNode(id: string): TreeNode {
         const node = nodeMap.get(id);
         if (!node) {
-            throw new Error('Node ${id} not found');
+            throw new Error(`Node ${id} not found`);
         }
 
         const children: TreeNode[] = [];
 
-        //Only process children if node is not collapsed
         if (!node.collapsed && node.children && Array.isArray(node.children)) {
             for (const childId of node.children) {
                 if (nodeMap.has(childId)) {
@@ -83,13 +82,7 @@ export function buildTreeFromNodeArray(
     return buildNode(rootId);
 }
 
-/**
- * Quick layout creation with sensible defaults
- * @param nodes - Record of nodes or TreeNode
- * @param rootId - Root node ID
- * @param layoutType - 'hierarchical' or 'radial'
- * @returns LayoutResult
- */
+// Quick layout creation with sensible defaults
 
 export function quickLayout(
     nodes: Record<string, MindMapNode> | TreeNode,
@@ -100,45 +93,33 @@ export function quickLayout(
         type: layoutType,
         nodeWidth: NODE_WIDTH,
         nodeHeight: NODE_HEIGHT,
-    
-        // Hierarchical defaults
         rankSep: 100,
         nodeSep: 50,
-    
-        // Radial defaults
         r0: 100,
         levelGap: 150,
         angleStart: -Math.PI / 2,
     };
 
-    // If it's already a TreeNode, use createLayout
     if ('children' in nodes && 'id' in nodes) {
         return createLayout(nodes as TreeNode, config);
     }
 
-    // Otherwise, use calculateLayout
     return calculateLayout(nodes as Record<string, MindMapNode>, rootId, config) as LayoutResult;
 }
 
-/**
- * Convert LayoutResult back to a simple position map
- * Useful for backward compatibility
- */
+// Convert LayoutResult back to a simple position map
+
 export function LayoutResultToPosition(
     result: LayoutResult
 ): Record<string, { x: number; y: number }> {
     const positions: Record<string, { x: number; y: number }> = {};
-
     Object.entries(result.nodes).forEach(([id, node]) => {
-        positions[id] = { x: node.x, y: node.y};
+        positions[id] = { x: node.x, y: node.y };
     });
-
     return positions;
 }
 
-/**
- * Get layout bounds from LayoutResult
- */
+// Get layout bounds from LayoutResult
 export function getLayoutBounds(result: LayoutResult): {
     minX: number;
     maxX: number;
@@ -153,48 +134,30 @@ export function getLayoutBounds(result: LayoutResult): {
     Object.values(result.nodes).forEach(node => {
         const halfWidth = node.width / 2;
         const halfHeight = node.height / 2;
-
         minX = Math.min(minX, node.x - halfWidth);
         maxX = Math.max(maxX, node.x + halfWidth);
         minY = Math.min(minY, node.y - halfHeight);
         maxY = Math.max(maxY, node.y + halfHeight);
     });
 
-    return {
-        minX,
-        maxX,
-        minY,
-        maxY,
-        width: maxX - minX,
-        height: maxY - minY
-      };
+    return { minX, maxX, minY, maxY, width: maxX - minX, height: maxY - minY };
 }
 
-/**
- * Center layout result at origin (0, 0)
- */
+// Center layout result at origin (0, 0)
 export function centerLayout(result: LayoutResult): LayoutResult {
     const bounds = getLayoutBounds(result);
     const centerX = (bounds.minX + bounds.maxX) / 2;
     const centerY = (bounds.minY + bounds.maxY) / 2;
 
     const centeredNodes: Record<string, typeof result.nodes[string]> = {};
-
     Object.entries(result.nodes).forEach(([id, node]) => {
-        centeredNodes[id] = {
-            ...node,
-            x: node.x - centerX,
-            y: node.y - centerY
-        };
+        centeredNodes[id] = { ...node, x: node.x - centerX, y: node.y - centerY };
     });
 
-    // Recalculate edge paths with new positions
     const centeredEdges = result.edges.map(edge => {
         const fromNode = centeredNodes[edge.from];
         const toNode = centeredNodes[edge.to];
-
         if (!fromNode || !toNode) return edge;
-
         return {
             ...edge,
             path: calculateCurvedPath(
@@ -204,17 +167,10 @@ export function centerLayout(result: LayoutResult): LayoutResult {
         };
     });
 
-    return {
-        nodes: centeredNodes,
-        edges: centeredEdges,
-        size: result.size
-    };
+    return { nodes: centeredNodes, edges: centeredEdges, size: result.size };
 }
 
-/**
- * Apply layout with animation-ready data
- * Returns both current and previous positions for smooth transitions
- */
+// Apply layout with animation-ready data
 export function applyLayoutWithTransition(
     nodes: Record<string, MindMapNode>,
     rootId: string,
@@ -225,12 +181,6 @@ export function applyLayoutWithTransition(
     previous: Record<string, { x: number; y: number }> | null;
 } {
     const current = quickLayout(nodes, rootId, layoutType);
-
-    let previous: Record<string, { x: number; y: number }> | null = null;
-
-    if (previousLayout) {
-        previous = LayoutResultToPosition(previousLayout);
-    }
-
+    const previous = previousLayout ? LayoutResultToPosition(previousLayout) : null;
     return { current, previous };
 }

@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import Toolbar from './components/Toolbar';
-import Canvas from './components/Canvas';
+import Canvas from './components/canvas/index';
 import NodeEditor from './components/NodeEditor';
 import SearchBar from './components/SearchBar';
 import { useMindMapStore } from './store/mindMapStore';
 import { initializeTheme, toggleTheme as utilToggleTheme } from './utils/theme';
 import { createBlankTemplate } from './templates/brainstorming';
 import './styles/App.css';
-import { isSea } from 'node:sea';
+
+
 
 const App: React.FC = () => {
   const {
