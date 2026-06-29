@@ -3,40 +3,40 @@ import {
     convertFileToMindMap,
     applySuggestedEdits,
 } from "../utils/ai";
-
 import { useAiUiStore } from "../store/aiUiStore";
+import * as orchestrator from "../utils/ai/aiMindMapOrchestrator";
 
 export function useAiAssistant() {
-    const ui = useAiUiStore();
+    const { start, finish, fail } = useAiUiStore();
 
     return {
         generateFromPrompt: async (prompt: string) => {
-            ui.start('generate');
             try {
-                await createMindMapFromPrompt(prompt);
-                ui.finish();
-            } catch (e) {
-                ui.fail((e as Error).message);
+                start('generate');
+                await orchestrator.createMindMapFromPrompt(prompt);
+                finish();
+            } catch (e: any) {
+                fail(e.message || "Error al generar el mapa");
             }
         },
 
         convertFile: async (content: string, type: any, name?: string) => {
-            ui.start('convert');
+            start('convert');
             try {
-                await convertFileToMindMap(content, type, name);
-                ui.finish();
-            } catch (e) {
-                ui.fail((e as Error).message);
+                await orchestrator.convertFileToMindMap(content, type, name);
+                finish();
+            } catch (e: any) {
+                fail(e.message || "Error al convertir el archivo");
             }
         },
 
         suggestEdits: async (instruction: string) => {
-            ui.start('suggest');
             try {
-                await applySuggestedEdits(instruction);
-                ui.finish();
-            } catch (e) {
-                ui.fail((e as Error).message);
+                start('suggest');
+                await orchestrator.applySuggestedEdits(instruction);
+                finish();
+            } catch (e: any) {
+                fail(e.message || "Error al aplicar sugerencias");
             }
         },
     };

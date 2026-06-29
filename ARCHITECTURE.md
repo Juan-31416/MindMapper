@@ -78,10 +78,13 @@ mindmapper/
 │   │   │   ├── Toolbar.tsx     # Top tollbar
 │   │   │   └── ai/
 │   │   │       ├── AiAssistantButton.tsx   # Floating button
+│   │   │       ├── AiAssistantContainer.tsx
+│   │   │       ├── AiAssistantContent.tsx
+│   │   │       ├── AiAssistantHeader.tsx
 │   │   │       ├── AiAssistantPanel.tsx    # Ai panel
-│   │   │       ├── AiAssistantTabs.tsx
-│   │   │       ├── AiSettings.tsx          # AiSettings
-│   │   │       └── AiErrorBanner.tsx       # Error management
+│   │   │       ├── AiChatView.tsx
+│   │   │       ├── AiErrorBanner.tsx       # Error management
+│   │   │       └── AiSettings.tsx          # AiSettings
 │   │   │
 │   │   ├── hooks           # hooks porcess
 │   │   │   ├── useAiAssistant      # Ai assistant hooks
@@ -89,10 +92,11 @@ mindmapper/
 │   │   │
 │   │   ├── store/          # State management
 │   │   │   ├── aiConfigStore   # Zustand ai config store
-│   │   │   ├── mindMapStore.ts # Zustand store
-│   │   │   └── aiUiStore.ts    # Zustand ai UI store
+│   │   │   ├── aiUiStore.ts    # Zustand ai UI store
+│   │   │   └── mindMapStore.ts # Zustand store
 │   │   │
 │   │   ├── styles/         # CSS stylesheets
+│   │   │   ├── AiAssistant.css # Ai assistant layout
 │   │   │   ├── App.css         # App layout
 │   │   │   ├── Canvas.css      # Canvas styles
 │   │   │   ├── edges.css       # Edges styles
@@ -118,8 +122,10 @@ mindmapper/
 │   │   │       └── index.ts        # barrel export
 │   │   │
 │   │   └── utils/              # Utility functions
+│   │       ├── aiMindMapService.ts
 │   │       ├── exporters.ts    # Export functionality
 │   │       ├── importers.ts    # Import functionality
+│   │       ├── index.ts    # Index
 │   │       ├── layout.ts       # Graph layout logic
 │   │       ├── searcher.ts     # Searching logic
 │   │       ├── theme.ts        # Theme management 

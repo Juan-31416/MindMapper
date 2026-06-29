@@ -45,7 +45,9 @@ export async function convertFileToMindMap(
 export async function applySuggestedEdits(instruction: string) {
     const mindMapStore = useMindMapStore.getState();
     const currentMap = mindMapStore.currentMap;
-    if (!currentMap) return;
+    if (!currentMap) {
+        throw new Error("No hay un mapa activo para aplicar sugerencias.");
+    };
 
     const aiConfig = useAiConfigStore.getState().config;
     const provider = createLLMProvider(aiConfig.llm);
@@ -55,10 +57,12 @@ export async function applySuggestedEdits(instruction: string) {
     const aiMindMap = mindMapToAiMindMap(currentMap);
 
     // 2. Ask for edits
-    const result = await service.suggestEdits(aiMindMap, instruction, { mode: 'edits', });
+    const operations = await service.suggestEdits(aiMindMap, instruction, { mode: 'edits', language: aiConfig.language});
 
     // 3. Apply to store
-    if (Array.isArray(result) && result.length > 0) {
-        mindMapStore.applyAiEdits(result);
+    if (Array.isArray(operations) && operations.length > 0) {
+        mindMapStore.applyAiEdits(operations);
+    } else {
+        console.warn("La IA no devolvió operaciones de edición válidas.");
     }
 }
