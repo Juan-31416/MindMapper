@@ -87,3 +87,34 @@ export const getBorderPoints = (
     end:   intersectRectBorder(sourceCenter, target), // ray from source toward target
   };
 };
+
+
+
+// ─── Arrow retreat ───
+/**
+ * Moves a point backwards along the segment (from -> to).
+ * Useful to leave room for an SVG arrowhead.
+ */
+
+export const retreatPoint = (
+  from: Point,
+  to: Point,
+  distance: number
+): Point => {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+
+  const length = Math.hypot(dx, dy);
+
+  if (length < 1e-6) {
+    return to;
+  }
+
+  const ux = dx / length;
+  const uy = dy / length;
+
+  return {
+    x: to.x - ux * distance,
+    y: to.y - uy * distance,
+  };
+};

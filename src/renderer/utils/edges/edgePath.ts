@@ -7,7 +7,12 @@
  *   - Respect the curvedEdges user preference
  */
 
-import { Point, Rect, getBorderPoints } from './edgeIntersection';
+import { 
+  Point, 
+  Rect, 
+  getBorderPoints,
+  retreatPoint,
+} from './edgeIntersection';
 
 
 
@@ -75,10 +80,12 @@ export const buildEdgePath = (
   style: EdgeStyle = 'curved'
 ): string => {
   const { start, end } = getBorderPoints(source, target);
+  const arrowTipOffset = 6;
+  const adjustedEnd = retreatPoint(start, end, arrowTipOffset);
 
   return style === 'curved'
-    ? cubicBezierPath(start, end)
-    : straightPath(start, end);
+    ? cubicBezierPath(start, adjustedEnd)
+    : straightPath(start, adjustedEnd);
 };
 
 
