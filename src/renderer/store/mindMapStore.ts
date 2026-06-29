@@ -17,6 +17,7 @@ import { createSearchIndex, runSearch as runFuzzySearch, DEFAULT_SEARCH_CONFIG }
 import type Fuse from 'fuse.js';
 import type { MindMapNode as SearchableNode } from '../types/mindmap';
 import { normalizeHex } from '../utils/colorUtils';
+import { EdgeStyle } from '../utils/edges';
 
 
 
@@ -33,9 +34,8 @@ interface MindMapStore {
   isDirty: boolean;
   search: SearchState;
   _searchIndex?: Fuse<SearchableNode> | null;
-
-  // Favorite colors
   favoriteColors: FavoriteColor[];
+  edgeStyle: EdgeStyle;
 
   // Actions
   createNewMap: (name: string) => void;
@@ -70,6 +70,7 @@ interface MindMapStore {
   runSearchNow: () => void;
   addFavoriteColor: (color:string, userId?: string) => void;
   removeFavoriteColor: (color: string, userId?: string) => void;
+  setEdgeStyle: (style: EdgeStyle) => void;
 }
 
 
@@ -84,6 +85,7 @@ interface StoredPreferences {
   layout?: LayoutType;
   theme?: 'light' | 'dark';
   favoriteColors?: FavoriteColor[];
+  edgeStyle?: EdgeStyle;
 }
 
 const loadPreferences = () => {
@@ -179,9 +181,8 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
     historyIndex: -1,
     currentFilePath: null,
     isDirty: false,
-
-    // Favorites
     favoriteColors:preferences.favoriteColors ?? [],
+    edgeStyle: preferences.edgeStyle || 'curved',
 
     // Initial search
     search: {
@@ -564,6 +565,13 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
     
     setCurrentFilePath: (path) => set({ currentFilePath: path }),
     setIsDirty: (isDirty) => set({ isDirty }),
+
+
+
+    setEdgeStyle: (edgeStyle: EdgeStyle) => {
+      set({ edgeStyle });
+      savePreferences({ edgeStyle });
+    },
     
 
     /********************************************

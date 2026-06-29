@@ -24,6 +24,9 @@ const Toolbar: React.FC = () => {
   const layout = useMindMapStore((state) => state.layout);
   const setLayout = useMindMapStore((state) => state.setLayout);
   
+  const edgeStyle    = useMindMapStore((state) => state.edgeStyle);
+  const setEdgeStyle = useMindMapStore((state) => state.setEdgeStyle);
+
   const [theme, setTheme] = useState(getCurrentTheme());
   const [showTemplates, setShowTemplates] = useState(false);
 
@@ -71,9 +74,14 @@ const Toolbar: React.FC = () => {
     setLayout(layoutType);
   };
 
+  const handleEdgeStyleToggle = () => {
+    setEdgeStyle(edgeStyle === 'curved' ? 'straight' : 'curved');
+  };
+
   return (
     <div className="toolbar">
       <div className="toolbar-left">
+
         {/* File Operations */}
         <div className="toolbar-section" style={{ position: 'relative' }}>
           <button
@@ -91,11 +99,7 @@ const Toolbar: React.FC = () => {
                   key={template.id}
                   className="toolbar-dropdown-item"
                   onClick={() => handleTemplateSelect(template.id)}
-                  style={{
-                    width: '100%',
-                    justifyContent: 'flex-start',
-                    borderRadius: 0,
-                  }}
+                  style={{ width: '100%', justifyContent: 'flex-start', borderRadius: 0 }}
                   title={template.description}
                 >
                   <span>{template.name}</span>
@@ -103,18 +107,10 @@ const Toolbar: React.FC = () => {
               ))}
             </div>
           )}
-          <button
-            className="toolbar-btn"
-            onClick={openMap}
-            title="Open (Ctrl+O)"
-          >
+          <button className="toolbar-btn" onClick={openMap} title="Open (Ctrl+O)">
             <LucideIcons.FolderOpen size={20} />
           </button>
-          <button
-            className="toolbar-btn"
-            onClick={saveMap}
-            title="Save (Ctrl+S)"
-          >
+          <button className="toolbar-btn" onClick={saveMap} title="Save (Ctrl+S)">
             <LucideIcons.Save size={20} />
           </button>
         </div>
@@ -123,27 +119,17 @@ const Toolbar: React.FC = () => {
 
         {/* Undo/Redo */}
         <div className="toolbar-section">
-          <button
-            className="toolbar-btn"
-            onClick={undo}
-            disabled={!canUndo()}
-            title="Undo (Ctrl+Z)"
-          >
+          <button className="toolbar-btn" onClick={undo} disabled={!canUndo()} title="Undo (Ctrl+Z)">
             <LucideIcons.Undo size={20} />
           </button>
-          <button
-            className="toolbar-btn"
-            onClick={redo}
-            disabled={!canRedo()}
-            title="Redo (Ctrl+Y)"
-          >
+          <button className="toolbar-btn" onClick={redo} disabled={!canRedo()} title="Redo (Ctrl+Y)">
             <LucideIcons.Redo size={20} />
           </button>
         </div>
 
         <div className="toolbar-divider"></div>
 
-        {/** Layout Toogle - Integrated */}
+        {/* Layout Toggle */}
         <div className="toolbar-section layout-toogle">
           <button
             className={`toolbar-btn layout-btn ${layout === 'hierarchical' ? 'active' : ''}`}
@@ -180,40 +166,81 @@ const Toolbar: React.FC = () => {
 
         <div className="toolbar-divider"></div>
 
-        {/** Zoom Controls */}
+        {/** Edge Style Toggle */}
         <div className="toolbar-section">
           <button
-            className="toolbar-btn"
-            onClick={handleZoomOut}
-            title="Zoom Out"
+            className={`toolbar-btn ${edgeStyle === 'curved' ? 'active' : ''}`}
+            onClick={handleEdgeStyleToggle}
+            title={edgeStyle === 'curved' ? 'Líneas curvas (click para rectas)' : 'Líneas rectas (click para curvas)'}
+            aria-label="Toggle edge style"
           >
+            {edgeStyle === 'curved' ? (
+              // Icono curva
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path
+                  d="M3 16 C3 16, 8 4, 17 4"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+                <path
+                  d="M3 4 C3 4, 8 16, 17 16"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  fill="none"
+                  opacity="0.35"
+                />
+              </svg>
+            ) : (
+              // Icono recta
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <line
+                  x1="3" y1="16" x2="17" y2="4"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+                <line
+                  x1="3" y1="4" x2="17" y2="16"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  opacity="0.35"
+                />
+              </svg>
+            )}
+            <span>{edgeStyle === 'curved' ? 'Curvas' : 'Rectas'}</span>
+          </button>
+        </div>
+
+        <div className="toolbar-divider"></div>
+
+        {/* Zoom Controls */}
+        <div className="toolbar-section">
+          <button className="toolbar-btn" onClick={handleZoomOut} title="Zoom Out">
             <LucideIcons.ZoomOut size={20} />
           </button>
           <span className="zoom-level">{Math.round(viewport.zoom * 100)}%</span>
-          <button
-            className="toolbar-btn"
-            onClick={handleZoomIn}
-            title="Zoom In"
-          >
+          <button className="toolbar-btn" onClick={handleZoomIn} title="Zoom In">
             <LucideIcons.ZoomIn size={20} />
           </button>
         </div>
       </div>
 
-      {/** Center - Map Name */}
+      {/* Center - Map Name */}
       <div className="toolbar-center">
         {currentMap && (
           <div className="map-name">
             <LucideIcons.Brain size={20} />
             <span>{currentMap.name}</span>
-            {isDirty && (
-              <div className="dirty-indicator" title="Unsaved changes"></div>
-            )}
+            {isDirty && <div className="dirty-indicator" title="Unsaved changes"></div>}
           </div>
         )}
       </div>
 
-      {/** Right - Theme Toogle */}
+      {/* Right - Theme Toggle */}
       <div className="toolbar-right">
         <div className="toolbar-section">
           <button

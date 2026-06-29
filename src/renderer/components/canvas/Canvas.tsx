@@ -69,7 +69,7 @@ const Canvas: React.FC = () => {
 
 
   // ── Edge style ──
-  const [edgeStyle, setEdgeStyle] = useState<EdgeStyle>('curved');
+  const edgeStyle = useMindMapStore((state) => state.edgeStyle);
 
 
 
