@@ -69,7 +69,7 @@ chmod +x MindMapper*.AppImage
 
 **Linux (Debian/Ubuntu):**
 ```bash
-sudo dpgk -i mindmapper*.deb
+sudo dpkg -i mindmapper*.deb
 ```
 
 **Windows**: Run MindMapper Setup.exe and follow the installer.
@@ -82,8 +82,8 @@ sudo dpgk -i mindmapper*.deb
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/mindmapper.git
-cd mindmapper
+git clone https://github.com/Juan-31416/MindMapper.git
+cd MindMapper
 ```
 
 2. Install dependencies:
@@ -116,6 +116,8 @@ npm run package      # build for current platform
 4. **Customize** - Use the right sidebar to change colors, icons, and styles
 5. **Save your work** - Press `Ctrl+S` to save your mind map
 6. **Export** - Export to PDF or JSON from the File menu
+
+For a beginner-friendly first-use guide in Spanish, see [QUICKSTART.md](./QUICKSTART.md).
 
 ---
 
