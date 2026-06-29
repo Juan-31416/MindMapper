@@ -38,11 +38,7 @@ export interface HierarchicalLayoutResult {
 // ─── Layout engine ──
 /**
  * Computes a top-down hierarchical layout using Dagre.
- *
- * @param nodes       - Flat map of all MindMapNodes
- * @param rootNodeId  - ID of the root node
- * @param nodeDimensions - Optional pre-computed dimensions (avoids re-measurement)
- */
+  */
 
 export const calculateHierarchicalLayout = (
   nodes: Record<string, MindMapNode>,

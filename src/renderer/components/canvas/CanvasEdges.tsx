@@ -18,7 +18,6 @@ import { buildEdgePath, calculateCurvedPath, EdgeStyle } from '../../utils/edges
 
 interface CanvasEdgesProps {
   layoutResult: LayoutResult;
-  /** Controls whether edges are drawn as Bezier curves or straight lines */
   edgeStyle: EdgeStyle;
 }
 
@@ -46,18 +45,16 @@ export const ArrowheadMarker: React.FC = () => (
 const CanvasEdges: React.FC<CanvasEdgesProps> = ({ layoutResult, edgeStyle }) => {
   return (
     <g className="connections">
+      <defs>
+        <ArrowheadMarker />
+      </defs>
       {layoutResult.edges.map((edge, i) => {
         const fromNode = layoutResult.nodes[edge.from];
         const toNode   = layoutResult.nodes[edge.to];
 
         if (!fromNode || !toNode) return null;
 
-        const path = edgeStyle === 'curved'
-          ? calculateCurvedPath(
-              { x: fromNode.x, y: fromNode.y },
-              { x: toNode.x,   y: toNode.y   }
-            )
-          : `M ${fromNode.x} ${fromNode.y} L ${toNode.x} ${toNode.y}`;
+        const path = buildEdgePath(fromNode, toNode, edgeStyle);
 
         return (
           <path
@@ -68,6 +65,7 @@ const CanvasEdges: React.FC<CanvasEdgesProps> = ({ layoutResult, edgeStyle }) =>
             fill="none"
             className="connection-path"
             markerEnd="url(#arrowhead)"
+            style={{ transition: 'd 0.3s ease' }}
           />
         );
       })}
