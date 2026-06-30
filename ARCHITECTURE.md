@@ -21,15 +21,21 @@ This document provides a comprehensive overview of MindMapper's technical archit
 
 ## Overview
 
-MindMapper is built as an Electron desktop application with a React-based user interface. The architecture follows modern best practices for security, performance, and maintainability.
+MindMapper is a privacy-first, local-first desktop application for creating and managing mind maps.
+
+The application is built on Electron using a strict separation between the Main Process, Preload layer and Renderer process. All user data remains on the local machine and no cloud services are required for normal operation.
+
+The rendering system has been designed around modularity, allowing multiple visualization engines while sharing the same rendering pipeline.
 
 ### Key Principles
 
-- **Separation of Concerns**: Clear boundaries between main process, renderer, and preload
-- **Type Safety**: Full TypeScript coverage for compile-time error detection
-- **Security First**: Context isolation, sandboxing, and minimal privileges
-- **Performance**: Efficient rendering and state updates
-- **Extensibility**: Modular design for future enhancements
+- Local-first architecture
+- Privacy-first by design
+- Strong TypeScript typing
+- Modular rendering pipeline
+- Clear separation of concerns
+- Extensible visualization engines
+- Security through Electron best practices
 
 ---
 
@@ -77,13 +83,13 @@ mindmapper/
 │       │   ├── NodeEditor.tsx      # Right sidebar editor
 │       │   ├── SearchBar.tsx       # Search bar component
 │       │   ├── Toolbar.tsx         # Top toolbar
-│       │   └── Canvas.tsx                  # SVG canvas for mind map
+│       │   └── canvas/                  # SVG canvas for mind map
 │       │       ├── CanvasNode.tsx
 │       │       ├── CanvasEdges.tsx
 │       │       ├── CanvasViewport.tsx
 │       │       ├── Canvas.tsx              # Clean orchestrator
 │       │       ├── index.ts                # Unified re-exports
-│       │       └── Canvas.tsx              # SVG canvas for mind map
+│       │       └── layouts/
 │       │           ├── HierarchicalView.tsx
 │       │           └── RadialView.tsx
 │       │
@@ -147,75 +153,128 @@ mindmapper/
 
 ### 1. Main Process Layer
 
-**Location**: `src/main/main.ts`
+**Location**: `src/main/`
 
 **Responsibilities**:
-- Window lifecycle management
-- Application menu creation
-- File system operations
-- IPC handlers for secure file access
-- Native OS integration
+- Application lifecycle
+- Native window management
+- File operations
+- IPC handlers
+- Native menus
+- SQLite access
+- Export operations
 
-**Key Components**:
-- `createWindow()`: Creates and configures the main window
-- `createApplicationMenu()`: Builds the native menu
-- IPC Handlers: `file:saveDialog`, `file:openDialog`, `file:exportPDF`, etc.
-
-**Security Measures**:
-- Runs with full Node.js privileges
-- Validates all IPC inputs
-- Restricts file system access to user-selected paths
+The Main Process is the only layer allowed to access privileged Node.js APIs directly.
 
 ### 2. Preload Layer
 
-**Location**: `src/preload/preload.ts`
+**Location**: `src/preload/`
 
 **Responsibilities**:
-- Bridge between main and renderer processes
-- Exposes safe IPC APIs to renderer
-- Type-safe API definitions
+- Secure bridge between Electron and React
+- IPC exposure
+- Type-safe APIs
+- Renderer isolation
 
-**Key APIs**:
-```typescript
-window.electronAPI = {
-  file: { save, saveDialog, load, openDialog, exportPDF, exportJSON },
-  dialog: { showMessage },
-  app: { getPath },
-  menu: { onNew, onOpen, onSave, ... },
-  window: { onBeforeClose, allowClose }
-}
-```
-
-**Security Measures**:
-- Context isolation enabled
-- Only whitelisted APIs exposed
-- No direct Node.js access from renderer
+Only explicitly exposed APIs are accessible from the renderer.
 
 ### 3. Renderer Layer
 
 **Location**: `src/renderer/`
 
 **Responsibilities**:
-- User interface rendering
-- User interaction handling
-- State management
-- Visual layout computation
-
-**Key Components**:
-- **App.tsx**: Root component, keyboard shortcuts, menu handlers
-- **Canvas.tsx**: SVG rendering, zoom/pan, node visualization
-- **Toolbar.tsx**: Action buttons, file operations, theme toggle
-- **NodeEditor.tsx**: Node property editing sidebar
-- **Node.tsx**: Individual node rendering and interaction
+- React UI
+- Canvas rendering
+- User interaction
+- State synchronization
+- Layout computation
+- SVG generation
 
 **Security Measures**:
 - Runs in sandboxed environment
 - No direct access to Node.js APIs
 - All privileged operations go through IPC
 
+### 4. Canvas Rendering Architecture
+
+The canvas follows a modular architecture introduced during Issue #3.
+
+Canvas.tsx
+                      │
+        ┌─────────────┴─────────────┐
+        │                           │
+CanvasNodes.tsx              CanvasEdges.tsx
+        │                           │
+        └─────────────┬─────────────┘
+                      │
+               LayoutResult
+                      │
+          ┌───────────┴───────────┐
+          │                       │
+ Hierarchical Layout       Radial Layout
+
+
+Responsibilities are clearly separated:
+
+**Canvas**
+ 
+Coordinates rendering.
+
+**CanvasNodes**
+
+Draws every node.
+
+Responsibilities:
+- Background
+- Borders
+- Icons
+- Text
+- Editing
+- Root highlighting
+- Collapse controls
+
+**CanvasEdges**
+
+Draws every connection.
+
+**Responsibilities**:
+
+- Straight edges
+- Curved edges
+- Arrowheads
+- Border intersection
+
+**Layout Engines**
+
+Responsible only for computing node positions.
+
+No SVG geometry is generated inside layout algorithms.
+
 ---
 
 ## Data Flow
+
+The application follows a unidirectional rendering pipeline.
+
+Mind Map Data
+       │
+       ▼
+Layout Engine
+(Hierarchical / Radial)
+       │
+       ▼
+LayoutResult
+       │
+       ├───────────────┐
+       ▼               ▼
+CanvasNodes      CanvasEdges
+       │               │
+       └───────┬───────┘
+               ▼
+             SVG
+               │
+               ▼
+            Renderer
 
 ### User Action Flow
 
@@ -318,72 +377,90 @@ While not explicitly set, the architecture naturally follows CSP principles by i
 
 ### Zustand Store
 
+MindMapper uses Zustand as its global state container.
+
 **Location**: `src/renderer/store/mindMapStore.ts`
 
-**State Structure**:
-```typescript
-{
-  currentMap: MindMap | null,
-  selectedNodeId: string | null,
-  editingNodeId: string | null,
-  viewport: ViewportState,
-  history: MindMap[],
-  historyIndex: number,
-  currentFilePath: string | null,
-  isDirty: boolean
-}
-```
+**Responsibilities**:
+- Current map
+- Selected node
+- Editing state
+- View mode
+- Viewport
+- Undo / Redo history
+- Current file
+- Dirty state
 
-**Key Actions**:
-- `createNewMap`: Initialize a new mind map
-- `loadMap`: Load an existing mind map
-- `createNode`: Add a new node
-- `deleteNode`: Remove a node and its children
-- `updateNodeText`: Edit node text
-- `updateNodeStyle`: Change node appearance
-- `undo/redo`: History navigation
-- `saveMap`: Persist to disk
-- `openMap`: Load from disk
-- `exportPDF/JSON`: Export operations
+Application state is immutable from the UI perspective and updated exclusively through store actions.
 
-**History Management**:
-- Immutable state updates
-- Deep copy on each modification
-- Linear history (no branching)
-- Undo/redo with index pointer
+The store represents the single source of truth for the renderer.
 
 ---
 
 ## Layout Engine
 
-### Algorithm: Dagre
+MindMapper currently provides two layout engines.
 
-MindMapper uses the Dagre graph layout algorithm for automatic node positioning.
+### Hierarchical Layout
 
-**Location**: `src/renderer/utils/layout.ts`
+**Implementation**:
 
-**Process**:
-1. Create a directed graph
-2. Add nodes with dimensions (width, height)
-3. Add edges (parent-child relationships)
-4. Configure layout options (direction, spacing, etc.)
-5. Run the layout algorithm
-6. Extract computed positions
+utils/layout/hierarchical.ts
 
-**Configuration**:
-```typescript
-{
-  rankdir: 'LR',        // Left-to-right layout
-  nodesep: 50,          // Space between nodes in same rank
-  edgesep: 10,          // Space between edges
-  ranksep: 80,          // Space between ranks
-}
-```
+**Characteristics**:
 
-**Optimizations**:
-- Layout computed only when structure changes
-- Cached dimensions to avoid recalculation
-- Efficient update mechanism
+- Dagre-based
+- Left-to-right organization
+- Dynamic node sizing
+- Automatic spacing
+
+Best suited for structured diagrams.
+
+### Radial Layout
+
+**Implementation**:
+
+utils/layout/radial.ts
+
+**Characteristics**:
+
+- Custom implementation
+- Variable node sizes
+- Dynamic radius calculation
+- Angular sector distribution
+- Collision reduction
+- Subtree balancing
+
+Best suited for brainstorming and concept exploration.
+
+### Shared Layout Utilities
+
+utils/layout/shared.ts
+
+**Provides**:
+
+- Shared constants
+- Node dimension calculation
+- Common geometry
+- Shared layout types
+
+### Edge Rendering
+
+Rendering is independent from layout.
+
+    utils/edges/
+
+    edgeIntersection.ts
+
+    edgePath.ts
+
+**Responsibilities**:
+
+- Border intersection
+- Bézier generation
+- Straight path generation
+
+This allows new edge styles without modifying layout algorithms.
 
 ---
 
@@ -477,29 +554,6 @@ All IPC handlers follow a consistent error pattern:
 
 ---
 
-## Performance Considerations
-
-### Rendering Optimization
-
-1. **React Memoization**: Use `React.memo()` for expensive components
-2. **Selective Re-renders**: Only update changed nodes
-3. **Virtual DOM**: React's efficient diffing algorithm
-4. **CSS Transitions**: Smooth animations with GPU acceleration
-
-### State Updates
-
-1. **Immutable Updates**: Prevent unnecessary re-renders
-2. **Batched Updates**: React automatically batches state changes
-3. **Shallow Equality**: Zustand uses shallow comparison
-
-### Layout Computation
-
-1. **On-Demand**: Only compute when structure changes
-2. **Cached Dimensions**: Store node dimensions
-3. **Incremental Updates**: Future optimization opportunity
-
----
-
 ## Error Handling
 
 ### Error Boundaries
@@ -529,72 +583,6 @@ if (!result.success) {
 - Error dialogs for failures
 - Confirmation dialogs for destructive actions
 - Loading states for async operations
-
----
-
-## Testing Strategy
-
-### Current State
-
-Phase 1 focuses on implementation. Testing will be added in Phase 2.
-
-### Planned Testing
-
-1. **Unit Tests**: Jest + Testing Library for components and utilities
-2. **Integration Tests**: Test IPC communication flow
-3. **E2E Tests**: Playwright for full application testing
-4. **Type Tests**: TypeScript for compile-time verification
-
----
-
-## Future Architecture Improvements
-
-### Phase 2
-
-1. **Modular Plugin System**: Allow extensions
-2. **Service Workers**: Background tasks and caching
-3. **Web Workers**: Offload heavy computations
-4. **IndexedDB**: Local storage for large data
-
-### Phase 3
-
-1. **Multi-Window Support**: Multiple mind maps open simultaneously
-2. **Real-Time Sync**: Collaborative editing with WebSockets
-3. **Cloud Storage**: Direct integration with cloud providers
-4. **Mobile Apps**: React Native for iOS/Android
-
----
-
-## Development Guidelines
-
-### Code Style
-
-- Use TypeScript strict mode
-- Follow functional programming patterns
-- Prefer immutability
-- Use descriptive variable names
-- Add JSDoc comments for complex functions
-
-### Component Design
-
-- Keep components small and focused
-- Use composition over inheritance
-- Separate logic from presentation
-- Extract reusable utilities
-
-### State Management
-
-- Keep state minimal and normalized
-- Avoid derived state (compute on the fly)
-- Use selectors for complex queries
-- Document state shape with TypeScript
-
-### File Organization
-
-- Group by feature, not by type
-- Keep related files together
-- Use index files for clean imports
-- Maintain consistent naming conventions
 
 ---
 
