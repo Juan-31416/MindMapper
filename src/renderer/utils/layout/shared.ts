@@ -21,6 +21,9 @@ export const NODE_MAX_WIDTH = 300;      // px — regular nodes
 export const ROOT_MAX_WIDTH = 320;      // px — root node
 export const NODE_MARGIN_X = 20;        // px — horizontal gap between nodes
 export const NODE_MARGIN_Y = 16;        // px — vertical gap between nodes
+export const MAX_ANGLE_PER_NODE = Math.PI * 0.8;    // ~144° — max sector per node
+export const MIN_RADIUS_ABSOLUTE = 160;             // px — floor for any level radius
+
 
 
 // ─── Node dimension measurement ──

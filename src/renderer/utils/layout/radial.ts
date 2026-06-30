@@ -14,6 +14,8 @@ import {
   NODE_WIDTH, 
   NODE_HEIGHT,
   NODE_MARGIN_X,
+  MAX_ANGLE_PER_NODE,
+  MIN_RADIUS_ABSOLUTE,
 } from './shared';
 
 
@@ -127,13 +129,12 @@ export class RadialLayout {
     if (node.collapsed || node.children.length === 0) return;
 
     const availableAngle = angleEnd - angleStart;
-    const childSectors   = this.distributeAngles(node.children, availableAngle, depth + 1, radius);
+    const childAngles = this.distributeAngles(node.children, availableAngle, depth + 1, radius);
 
     let cursor = angleStart;
     for (let i = 0; i < node.children.length; i++) {
-      const span      = childSectors[i];
-      this.assignSector(node.children[i], cursor, cursor + span, depth + 1);
-      cursor += span;
+      this.assignSector(node.children[i], cursor, cursor + childAngles[i], depth + 1);
+      cursor += childAngles[i];
     }
   }
 
@@ -145,14 +146,14 @@ export class RadialLayout {
   ): number {
     const baseRadius = this.r0 + (depth - 1) * this.levelGap;
     const dims       = this.getNodeDims(node.id);
-    const requiredArc = dims.width + NODE_MARGIN_X * 2;
 
-    // Minimum radius so the node fits in its angular sector
-    const sectorAngle = Math.max(angleEnd - angleStart, MIN_ANGLE);
+    const nodeSize    = Math.max(dims.width, dims.height) + NODE_MARGIN_X * 2;
+    
+    const sectorAngle = Math.min(Math.max(angleEnd - angleStart, MIN_ANGLE), MAX_ANGLE_PER_NODE);
 
-    const minRadius   = requiredArc / sectorAngle;
+    const minRadius   = nodeSize / sectorAngle;
 
-    return Math.max(baseRadius, minRadius);
+    return Math.max(baseRadius, minRadius, MIN_RADIUS_ABSOLUTE);
   }
 
   private distributeAngles(
@@ -163,24 +164,26 @@ export class RadialLayout {
   ): number[] {
     const estimatedRadius = Math.max(
       parentRadius + this.levelGap,
-      this.r0 + (depth - 1) * this.levelGap
+      this.r0 + (depth - 1) * this.levelGap,
+      MIN_RADIUS_ABSOLUTE
     );
 
     // Compute minimum angle for each child
     const minAngles = children.map(child => {
       const dims    = this.getNodeDims(child.id);
-      const arcNeeeded   = dims.width + NODE_MARGIN_X * 2;
+      const arcNeeeded   = Math.max(dims.width, dims.height) + NODE_MARGIN_X * 2;
 
       return Math.max(arcNeeeded / estimatedRadius, MIN_ANGLE);
     });
 
+    const cappedMin = minAngles.map(a => Math.min(a, MAX_ANGLE_PER_NODE));
     const totalMin = minAngles.reduce((a, b) => a + b, 0);
 
     // If minimum angles already exceed available space, scale them down uniformly
     if (totalMin >= availableAngle) {
       const scale = availableAngle / totalMin;
 
-      return minAngles.map(a => a * scale);
+      return cappedMin.map(a => a * scale);
     }
 
     // Distribute remaining angle proportionally to leaf count
@@ -188,9 +191,11 @@ export class RadialLayout {
     const leafCounts   = children.map(c => this.countLeaves(c));
     const totalLeaves  = leafCounts.reduce((a, b) => a + b, 0) || 1;
 
-    return children.map((_, i) =>
-      minAngles[i] + (leafCounts[i] / totalLeaves) * remaining
-    );
+    return children.map((_, i) => {
+      const proportional = cappedMin[i] + (leafCounts[i] / totalLeaves) * remaining;
+
+      return Math.min(proportional, MAX_ANGLE_PER_NODE);
+    });
   }
 
 
@@ -221,8 +226,8 @@ export class RadialLayout {
     const dims = this.getNodeDims(node.id);
 
     nodes[node.id] = {
-      id:        node.id,
-      x,
+      id: node.id, 
+      x, 
       y,
       width:     dims.width,
       height:    dims.height,
