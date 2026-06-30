@@ -4,12 +4,22 @@
  * Path generation is delegated to utils/edges/ — this module only outputs positions.
  */
 
-import { PositionedNode, PositionedEdge, LayoutResult, TreeNode } from '../../types/mindmap';
-import { NODE_WIDTH, NODE_HEIGHT } from './shared';
+import { 
+  PositionedNode, 
+  PositionedEdge, 
+  LayoutResult, 
+  TreeNode,
+} from '../../types/mindmap';
+import { 
+  NODE_WIDTH, 
+  NODE_HEIGHT,
+  NODE_MARGIN_X,
+} from './shared';
 
 
 
 // ─── Types ───
+
 export interface RadialConfig {
   r0?: number;
   levelGap?: number;
@@ -19,11 +29,16 @@ export interface RadialConfig {
   nodeDimensions?: Record<string, { width: number; height: number }>;
 }
 
-interface SubtreeInfo {
-  size: number;
+interface NodeSector {
+  radius: number;
   angleStart: number;
   angleEnd: number;
 }
+
+// ─── Constants ───
+
+const TWO_PI = 2 * Math.PI;
+const MIN_ANGLE = 0.01;       // rad
 
 
 
@@ -44,41 +59,39 @@ export class RadialLayout {
   private angleStart: number;
   private nodeWidth: number;
   private nodeHeight: number;
-  private subtreeSizes: Map<string, number>;
-  private subtreeAngles: Map<string, SubtreeInfo>;
   private nodeDimensions: Record<string, { width: number; height: number }>;
+  private sectors: Map<string, NodeSector> = new Map();
 
   constructor(config: RadialConfig) {
-    this.r0          = config.r0         ?? 100;
-    this.levelGap    = config.levelGap   ?? 150;
+    this.r0          = config.r0         ?? 180;
+    this.levelGap    = config.levelGap   ?? 200;
     this.angleStart  = config.angleStart ?? -Math.PI / 2;
     this.nodeWidth   = config.nodeWidth;
     this.nodeHeight  = config.nodeHeight;
-    this.subtreeSizes  = new Map();
-    this.subtreeAngles = new Map();
     this.nodeDimensions = config.nodeDimensions ?? {};
   }
 
 
 
   // ─── Public entry point ───
+
   layout(root: TreeNode): LayoutResult {
-    this.calculateSubtreeSizes(root);
-    this.assignAngles(root, this.angleStart, this.angleStart + 2 * Math.PI, 0);
+    this.sectors = new Map();
+    this.assignSector(root, this.angleStart, this.angleStart + TWO_PI, 0);
 
     const nodes: Record<string, PositionedNode> = {};
     const edges: PositionedEdge[] = [];
     let minX = Infinity, maxX = -Infinity;
     let minY = Infinity, maxY = -Infinity;
 
-    this.positionNodes(root, 0, nodes, edges, (x, y) => {
-      minX = Math.min(minX, x);
-      maxX = Math.max(maxX, x);
-      minY = Math.min(minY, y);
-      maxY = Math.max(maxY, y);
+    this.collectNodes(root, 0, nodes, edges, (x, y, w, h) => {
+      minX = Math.min(minX, x - w / 2);
+      maxX = Math.max(maxX, x + w / 2);
+      minY = Math.min(minY, y - h / 2);
+      maxY = Math.max(maxY, y + h / 2);
     });
 
-    const padding = 100;
+    const padding = 120;
     const offsetX = -minX + padding;
     const offsetY = -minY + padding;
 
@@ -87,21 +100,149 @@ export class RadialLayout {
       node.y += offsetY;
     });
 
-    // Edges carry topology only — paths are computed at render time by CanvasEdges
-    const adjustedEdges: PositionedEdge[] = edges.map(edge => ({
-      ...edge,
-      path: '',
-    }));
-
-    const width  = maxX - minX + this.nodeWidth  + 2 * padding;
-    const height = maxY - minY + this.nodeHeight + 2 * padding;
-
     return {
       nodes,
-      edges: adjustedEdges,
-      size: { width, height },
+      edges,
+      size: {
+        width:  maxX - minX + 2 * padding,
+        height: maxY - minY + 2 * padding,
+      },
     };
   }
+
+
+
+  // ─── Sector assignment ───
+
+  private assignSector(
+    node: TreeNode,
+    angleStart: number,
+    angleEnd:   number,
+    depth:      number
+  ): void {
+    const radius = depth === 0 ? 0 : this.computeRadius(node.children.length > 0 ? node : node, angleStart, angleEnd, depth);
+
+    this.sectors.set(node.id, { angleStart, angleEnd, radius });
+
+    if (node.collapsed || node.children.length === 0) return;
+
+    const availableAngle = angleEnd - angleStart;
+    const childSectors   = this.distributeAngles(node.children, availableAngle, depth + 1, radius);
+
+    let cursor = angleStart;
+    for (let i = 0; i < node.children.length; i++) {
+      const span      = childSectors[i];
+      this.assignSector(node.children[i], cursor, cursor + span, depth + 1);
+      cursor += span;
+    }
+  }
+
+  private computeRadius(
+    node: TreeNode,
+    angleStart: number,
+    angleEnd:   number,
+    depth:      number
+  ): number {
+    const baseRadius = this.r0 + (depth - 1) * this.levelGap;
+    const dims       = this.getNodeDims(node.id);
+    const requiredArc = dims.width + NODE_MARGIN_X * 2;
+
+    // Minimum radius so the node fits in its angular sector
+    const sectorAngle = Math.max(angleEnd - angleStart, MIN_ANGLE);
+
+    const minRadius   = requiredArc / sectorAngle;
+
+    return Math.max(baseRadius, minRadius);
+  }
+
+  private distributeAngles(
+    children: TreeNode[],
+    availableAngle: number,
+    depth: number,
+    parentRadius: number
+  ): number[] {
+    const estimatedRadius = Math.max(
+      parentRadius + this.levelGap,
+      this.r0 + (depth - 1) * this.levelGap
+    );
+
+    // Compute minimum angle for each child
+    const minAngles = children.map(child => {
+      const dims    = this.getNodeDims(child.id);
+      const arcNeeeded   = dims.width + NODE_MARGIN_X * 2;
+
+      return Math.max(arcNeeeded / estimatedRadius, MIN_ANGLE);
+    });
+
+    const totalMin = minAngles.reduce((a, b) => a + b, 0);
+
+    // If minimum angles already exceed available space, scale them down uniformly
+    if (totalMin >= availableAngle) {
+      const scale = availableAngle / totalMin;
+
+      return minAngles.map(a => a * scale);
+    }
+
+    // Distribute remaining angle proportionally to leaf count
+    const remaining    = availableAngle - totalMin;
+    const leafCounts   = children.map(c => this.countLeaves(c));
+    const totalLeaves  = leafCounts.reduce((a, b) => a + b, 0) || 1;
+
+    return children.map((_, i) =>
+      minAngles[i] + (leafCounts[i] / totalLeaves) * remaining
+    );
+  }
+
+
+  private countLeaves(node: TreeNode): number {
+    if (node.collapsed || node.children.length === 0) return 1;
+    
+    return node.children.reduce((sum, child) => sum + this.countLeaves(child), 0);
+  }
+
+
+
+  // ─── Node positioning ───
+
+  private collectNodes(
+    node: TreeNode,
+    depth: number,
+    nodes: Record<string, PositionedNode>,
+    edges: PositionedEdge[],
+    updateBounds: (x: number, y: number, w: number, h: number) => void
+  ): void {
+    const sector = this.sectors.get(node.id);
+    if (!sector) return;
+
+    const midAngle = (sector.angleStart + sector.angleEnd) / 2;
+    const x = sector.radius * Math.cos(midAngle);
+    const y = sector.radius * Math.sin(midAngle);
+
+    const dims = this.getNodeDims(node.id);
+
+    nodes[node.id] = {
+      id:        node.id,
+      x,
+      y,
+      width:     dims.width,
+      height:    dims.height,
+      collapsed: node.collapsed,
+    };
+
+    updateBounds(x, y, dims.width, dims.height);
+
+    if (node.collapsed || node.children.length === 0) return;
+
+    for (const child of node.children) {
+      this.collectNodes(child, depth + 1, nodes, edges, updateBounds);
+
+      if (nodes[child.id]) {
+        edges.push({ from: node.id, to: child.id, path: '' });
+      }
+    }
+  }
+
+
 
   // ─── Private helpers ───
 
@@ -110,104 +251,5 @@ export class RadialLayout {
       width:  this.nodeWidth,
       height: this.nodeHeight,
     };
-  }
-
-  /**
-   * Counts the number of leaf nodes in each subtree.
-   * Used to distribute angular sectors proportionally.
-   */
-  private calculateSubtreeSizes(node: TreeNode): number {
-    if (node.collapsed || node.children.length === 0) {
-      this.subtreeSizes.set(node.id, 1);
-      return 1;
-    }
-
-    let totalSize = 0;
-    for (const child of node.children) {
-      totalSize += this.calculateSubtreeSizes(child);
-    }
-
-    this.subtreeSizes.set(node.id, totalSize);
-    return totalSize;
-  }
-
-  /**
-   * Recursively assigns angular sectors [angleStart, angleEnd] to each node.
-   * Each child receives a sector proportional to its subtree size.
-   */
-  private assignAngles(
-    node: TreeNode,
-    angleStart: number,
-    angleEnd: number,
-    depth: number
-  ): void {
-    this.subtreeAngles.set(node.id, {
-      size: this.subtreeSizes.get(node.id) ?? 1,
-      angleStart,
-      angleEnd,
-    });
-
-    if (node.collapsed || node.children.length === 0) return;
-
-    const totalSize      = this.subtreeSizes.get(node.id) ?? 1;
-    const availableAngle = angleEnd - angleStart;
-    let currentAngle     = angleStart;
-
-    for (const child of node.children) {
-      const childSize      = this.subtreeSizes.get(child.id) ?? 1;
-      const childAngleSpan = (childSize / totalSize) * availableAngle;
-      const childAngleEnd  = currentAngle + childAngleSpan;
-
-      this.assignAngles(child, currentAngle, childAngleEnd, depth + 1);
-      currentAngle = childAngleEnd;
-    }
-  }
-
-  /**
-   * Computes (x, y) for each node and emits topology-only edges.
-   */
-  private positionNodes(
-    node: TreeNode,
-    depth: number,
-    nodes: Record<string, PositionedNode>,
-    edges: PositionedEdge[],
-    updateBounds: (x: number, y: number) => void
-  ): void {
-    const info = this.subtreeAngles.get(node.id);
-    if (!info) return;
-
-    const midAngle = (info.angleStart + info.angleEnd) / 2;
-    const radius   = depth === 0 ? 0 : this.r0 + depth * this.levelGap;
-
-    const x = radius * Math.cos(midAngle);
-    const y = radius * Math.sin(midAngle);
-
-    const dims = this.getNodeDims(node.id);
-
-    nodes[node.id] = {
-      id: node.id,
-      x,
-      y,
-      width:     dims.width,
-      height:    dims.height,
-      collapsed: node.collapsed,
-    };
-
-    updateBounds(x - dims.width  / 2, y - dims.height / 2);
-    updateBounds(x + dims.width  / 2, y + dims.height / 2);
-
-    if (node.collapsed || node.children.length === 0) return;
-
-    for (const child of node.children) {
-      this.positionNodes(child, depth + 1, nodes, edges, updateBounds);
-
-      if (nodes[child.id]) {
-        edges.push({
-          from: node.id,
-          to:   child.id,
-          path: '',
-        });
-      }
-    }
   }
 }

@@ -16,10 +16,11 @@ export const FONT_FAMILY    = 'Inter, system-ui, sans-serif';
 export const LINE_HEIGHT    = 20;       // px per line
 export const PADDING_H      = 44;       // horizontal padding (icon + margins)
 export const PADDING_V      = 20;       // vertical padding (top + bottom)
-export const NODE_MIN_WIDTH = 160;     // px
-export const NODE_MAX_WIDTH = 300;     // px — regular nodes
-export const ROOT_MAX_WIDTH = 320;     // px — root node
-
+export const NODE_MIN_WIDTH = 160;      // px
+export const NODE_MAX_WIDTH = 300;      // px — regular nodes
+export const ROOT_MAX_WIDTH = 320;      // px — root node
+export const NODE_MARGIN_X = 20;        // px — horizontal gap between nodes
+export const NODE_MARGIN_Y = 16;        // px — vertical gap between nodes
 
 
 // ─── Node dimension measurement ──
