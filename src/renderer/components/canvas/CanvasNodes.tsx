@@ -170,16 +170,29 @@ const CanvasNodes: React.FC<CanvasNodesProps> = ({
         {/* Root node halo */}
         {isRoot && (
           <rect
-            x={-nodeW / 2 - 4}
-            y={-nodeH / 2 - 4}
-            width={nodeW + 8}
-            height={nodeH + 8}
-            rx={12}
+            x={-nodeW / 2 - 8}
+            y={-nodeH / 2 - 8}
+            width={nodeW + 16}
+            height={nodeH + 16}
+            rx={14}
             fill="none"
-            stroke={bColor}
-            strokeWidth={2}
-            strokeOpacity={0.5}
-            className="root-halo"
+            stroke="rgba(255, 255, 255, 0.12)"
+            strokeWidth={4}
+            className="root-halo-outer"
+          />
+        )}
+
+        {isRoot && (
+          <rect
+            x={-nodeW / 2 - 3}
+            y={-nodeH / 2 - 3}
+            width={nodeW + 6}
+            height={nodeH + 6}
+            rx={10}
+            fill="none"
+            stroke="rgba(255, 255, 255, 0.55)"
+            strokeWidth={1.5}
+            className="root-halo-inner"
           />
         )}
 
