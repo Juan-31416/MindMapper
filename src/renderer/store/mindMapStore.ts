@@ -18,7 +18,6 @@ import type Fuse from 'fuse.js';
 import type { MindMapNode as SearchableNode } from '../types/mindmap';
 import { normalizeHex } from '../utils/colorUtils';
 import { EdgeStyle } from '../utils/edges';
-import { stat } from 'fs';
 
 
 
@@ -70,7 +69,7 @@ interface MindMapStore {
   clearSearch: () => void;
   runSearchNow: () => void;
   toggleCaseSensitive: () => void;
-  setActiveResutlIndex: (index: number) => void;
+  setActiveResultIndex: (index: number) => void;
   addFavoriteColor: (color:string, userId?: string) => void;
   removeFavoriteColor: (color: string, userId?: string) => void;
   setEdgeStyle: (style: EdgeStyle) => void;
@@ -899,7 +898,7 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
       get().runSearchNow();
     },
 
-    setActiveResutlIndex: (index: number) => {
+    setActiveResultIndex: (index: number) => {
       set((state) => ({
         search: {
           ...state.search,
