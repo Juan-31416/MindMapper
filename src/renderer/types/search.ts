@@ -13,7 +13,7 @@ export interface SearchFieldMatch {
 export interface SearchResult {
     nodeId: string;
     score: number;      // 0 = best match
-    matches: SearchFieldMatch[];
+    textMatches: SearchMatchSegment[];
 }
 
 export interface SearchState {
