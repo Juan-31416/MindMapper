@@ -19,6 +19,8 @@ export interface SearchResult {
 export interface SearchState {
     query: string;
     results: SearchResult[];
+    activeResultIndex: number;
+    caseSensitive: boolean;
     isSearching: boolean;
     isActive: boolean;
     lastUpdatedAt: number | null;
@@ -29,6 +31,4 @@ export interface SearchConfig {
     debounceMs: number;
 }
 
-export type SearchableNode = MindMapNode & {
-    tags?: string[];
-};
+export type SearchableNode = any;
