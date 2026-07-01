@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useMindMapStore } from '../store/mindMapStore';
 import { DEFAULT_SEARCH_CONFIG } from '../utils/searcher';
+import { CaseSensitive } from 'lucide-react';
 
 export interface UseFuzzySearchOptions {
     debounceMs?: number;
@@ -44,13 +45,15 @@ export const useFuzzySearch = (options: UseFuzzySearchOptions = {}) => {
                 debounceTimerRef.current = null;
             }
         };
-    }, [search.query, debounceMs, minQueryLength, runSearchNow, clearSearch, search.results.length, search.isSearching]);
+    }, [search.query, search.caseSensitive, debounceMs, minQueryLength, runSearchNow, clearSearch, search.results.length, search.isSearching]);
 
     // Hook API
     return {
         query: search.query,
         results: search.results,
         isSearching: search.isSearching,
+        activeResultIndex: search.activeResultIndex,
+        caseSensitive: search.caseSensitive,
         setQuery: setSearchQuery,
         clear: clearSearch,
         forceSearch: runSearchNow,
