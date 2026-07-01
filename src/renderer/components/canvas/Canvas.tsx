@@ -16,8 +16,9 @@ import { useMindMapStore } from '../../store/mindMapStore';
 import { LayoutResult } from '../../types/mindmap';
 import { createLayout, buildTreeFromNodes, NODE_WIDTH, NODE_HEIGHT } from '../../utils/layout';
 import { EdgeStyle } from '../../utils/edges';
+import type { SearchResult } from '../../types/search';
 import HierarchicalView from './layouts/HierarchicalView';
-import RadialView        from './layouts/RadialView';
+import RadialView from './layouts/RadialView';
 import { ArrowheadMarker } from './CanvasEdges';
 import '../../styles/Canvas.css';
 
@@ -248,11 +249,13 @@ const Canvas: React.FC = () => {
 
 
 
-  // ── Search match sets ──
-  const searchMatchIds = useMemo(
-    () => new Set(search.results.map(r => r.nodeId)),
-    [search.results]
-  );
+  // ── Search derived data ──
+  const { searchResultsMap, activeSearchNodeId } = useMemo(() => {
+    const map = new Map<string, SearchResult>();
+    search.results.forEach(r => map.set(r.nodeId, r));
+    const activeNodeId = search.results[search.activeResultIndex]?.nodeId ?? null;
+    return { searchResultsMap: map, activeSearchNodeId: activeNodeId};
+  }, [search.results, search.activeResultIndex]);
 
 
 
@@ -276,7 +279,8 @@ const Canvas: React.FC = () => {
     dropTarget,
     isAnimating,
     prevPositions,
-    searchMatchIds,
+    searchResultsMap,
+    activeSearchNodeId,
     edgeStyle,
     svgRef,
     viewport,

@@ -10,6 +10,7 @@
 import React from 'react';
 import { MindMapNode, LayoutResult } from '../../../types/mindmap';
 import { EdgeStyle } from '../../../utils/edges';
+import type { SearchResult } from '../../../types/search';
 import CanvasEdges from '../CanvasEdges';
 import CanvasNodes from '../CanvasNodes';
 
@@ -24,7 +25,8 @@ interface RadialViewProps {
   dropTarget:     string | null;
   isAnimating:    boolean;
   prevPositions:  Record<string, { x: number; y: number }>;
-  searchMatchIds: Set<string>;
+  searchResultsMap:    Map<string, SearchResult>;
+  activeSearchNodeId:  string | null;
   edgeStyle:      EdgeStyle;
   svgRef:         React.RefObject<SVGSVGElement>;
   viewport:       { zoom: number; panX: number; panY: number };
@@ -39,8 +41,8 @@ const RadialView: React.FC<RadialViewProps> = (props) => {
   const {
     nodes, layoutResult, rootNodeId,
     selectedNodeId, editingNodeId, dropTarget,
-    isAnimating, prevPositions, searchMatchIds,
-    edgeStyle, svgRef, viewport,
+    isAnimating, prevPositions, searchResultsMap,
+    activeSearchNodeId, edgeStyle, svgRef, viewport,
     onSelectNode, onEditNode, onUpdateText,
     onToggleCollapse, onNodeMouseDown,
   } = props;
@@ -60,7 +62,8 @@ const RadialView: React.FC<RadialViewProps> = (props) => {
         dropTarget={dropTarget}
         isAnimating={isAnimating}
         prevPositions={prevPositions}
-        searchMatchIds={searchMatchIds}
+        searchResultsMap={searchResultsMap}
+        activeSearchNodeId={activeSearchNodeId}
         svgRef={svgRef}
         viewport={viewport}
         onSelectNode={onSelectNode}

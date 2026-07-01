@@ -151,19 +151,26 @@
   animation: search-pulse 2s sease-in-out infinite;
 }
 
-.node-text.node-text--search {
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 2px;
+.mind-node.search-match--active {
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.85));
+}
+
+.mind-node.search-match--active .node-bg {
+  animation: search-pulse-active 2s ease-in-out infinite;
+}
+
+.mind-node.search-match--secondary {
+  filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.25));
 }
 
 @keyframes search-pulse {
-  0%, 100% {
-    filter: brightness(1);
-  }
-  50% {
-    filter: brightness(1.2);
-  }
+  0%, 100% { filter: brightness(1);}
+  50% { filter: brightness(1.2); }
+}
+
+@keyframes search-pulse-active {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.3); }
 }
 
 /* ── Root node highlight ── */

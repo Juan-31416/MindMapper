@@ -15,6 +15,7 @@
 import React from 'react';
 import * as LucideIcons from 'lucide-react';
 import { MindMapNode, LayoutResult } from '../../types/mindmap';
+import type { SearchResult, SearchMatchSegment } from '../../types/search';
 import { getContrastTextColor } from '../../utils/colorUtils';
 
 
@@ -25,7 +26,16 @@ const FONT_SIZE   = 13;
 const LINE_HEIGHT = 20;
 const FONT_FAMILY = 'Inter, system-ui, sans-serif';
 
-const wrapText = (text: string, maxWidth: number, isBold = false): string[] => {
+
+
+// ─── wrapTextWithOffsets ───
+
+interface WrappedLine {
+  text: string;
+  startOffset: number;
+}
+
+const wrapTextWithOffsets = (text: string, maxWidth: number, isBold = false): WrappedLine[] => {
   let ctx: CanvasRenderingContext2D | null = null;
   try {
     const canvas = document.createElement('canvas');
@@ -37,8 +47,9 @@ const wrapText = (text: string, maxWidth: number, isBold = false): string[] => {
   } catch {}
 
   const words = text.split(' ');
-  const lines: string[] = [];
+  const lines: WrappedLine[] = [];
   let currentLine = '';
+  let currentOffset = 0;
 
   for (const word of words) {
     const testLine  = currentLine ? `${currentLine} ${word}` : word;
@@ -47,15 +58,61 @@ const wrapText = (text: string, maxWidth: number, isBold = false): string[] => {
       : testLine.length * (FONT_SIZE * 0.6);
 
     if (testWidth > maxWidth && currentLine) {
-      lines.push(currentLine);
+      lines.push({ text: currentLine, startOffset: currentOffset });
+      currentOffset += currentLine.length + 1; 
       currentLine = word;
     } else {
       currentLine = testLine;
     }
   }
-  if (currentLine) lines.push(currentLine);
+  if (currentLine) lines.push({ text: currentLine, startOffset: currentOffset });
+
   return lines;
 };
+
+
+// ─── splitLineByMatches ───
+
+interface TextSegment {
+  text: string;
+  isMatch: boolean;
+}
+
+const splitLineByMatches = (
+  lineText: string,
+  lineStart: number,
+  matches: SearchMatchSegment[],
+): TextSegment[] => {
+  const lineEnd = lineStart + lineText.length - 1;
+  const segments: TextSegment[] = [];
+  let cursor = 0;
+
+  const overlapping = matches.filter(m => m.start <= lineEnd && m.end >= lineStart).map(m => ({
+    localStart: Math.max(m.start, lineStart) - lineStart,
+    localEnd: Math.min(m.end, lineEnd) - lineStart,
+  }))
+  .sort((a, b) => a.localStart - b.localStart);
+
+  for (const { localStart, localEnd } of overlapping) {
+    if (cursor < localStart) {
+      segments.push({ text: lineText.slice(cursor, localStart), isMatch: false });
+    }
+
+    segments.push({ text: lineText.slice(localStart, localEnd + 1), isMatch: true });
+    cursor = localEnd + 1;
+  }
+
+  if (cursor < lineText.length) {
+    segments.push({ text: lineText.slice(cursor), isMatch: false });
+  }
+
+  // Fallback: no matches
+  if (segments.length === 0) {
+    segments.push({ text: lineText, isMatch: false });
+  }
+
+  return segments;
+}
 
 
 
@@ -70,7 +127,8 @@ interface CanvasNodesProps {
   dropTarget:     string | null;
   isAnimating:    boolean;
   prevPositions:  Record<string, { x: number; y: number }>;
-  searchMatchIds: Set<string>;
+  searchResultsMap:    Map<string, SearchResult>;
+  activeSearchNodeId:  string | null;
   svgRef:         React.RefObject<SVGSVGElement>;
   viewport:       { zoom: number; panX: number; panY: number };
   onSelectNode:   (id: string) => void;
@@ -93,7 +151,8 @@ const CanvasNodes: React.FC<CanvasNodesProps> = ({
   dropTarget,
   isAnimating,
   prevPositions,
-  searchMatchIds,
+  searchResultsMap,
+  activeSearchNodeId,
   svgRef,
   viewport,
   onSelectNode,
@@ -123,12 +182,15 @@ const CanvasNodes: React.FC<CanvasNodesProps> = ({
     const isEditing   = editingNodeId  === nodeId;
     const isDropTarget = dropTarget    === nodeId;
     const hasChildren  = node.children.length > 0;
-    const isSearchMatch = searchMatchIds.has(nodeId);
     const isRoot       = nodeId === rootNodeId;
 
+    const searchResult    = searchResultsMap.get(nodeId);
+    const isSearchMatch = searchResultsMap.has(nodeId);
+    const isActiveSearch = activeSearchNodeId === nodeId;
+
     const PADDING_H = 50;
-    const lines = wrapText(node.text, nodeW - PADDING_H, isRoot);
-    const totalTextHeight = lines.length * LINE_HEIGHT;
+    const wrappedLines = wrapTextWithOffsets(node.text, nodeW - PADDING_H, isRoot);
+    const totalTextHeight = wrappedLines.length * LINE_HEIGHT;
 
     const IconComponent = node.style.icon
       ? (LucideIcons as any)[node.style.icon] || LucideIcons.Circle
@@ -141,23 +203,26 @@ const CanvasNodes: React.FC<CanvasNodesProps> = ({
     const textColor = getContrastTextColor(node.style);
     const bStyle    = node.style.borderStyle ?? 'full';
     const bColor    = node.style.borderColor || node.style.backgroundColor;
-
-    // Root node: slightly larger font
     const fontSize   = isRoot ? FONT_SIZE + 3 : FONT_SIZE;
     const fontWeight = isRoot ? 'bold' : 'normal';
+
+    const nodeClasses = [
+      'mind-node',
+      isSelected    ? 'selected'      : '',
+      isDropTarget  ? 'drop-target'   : '',
+      isAnimating   ? 'animating'     : '',
+      isSearchMatch && isActiveSearch  ? 'search-match search-match--active'   : '',
+      isSearchMatch && !isActiveSearch ? 'search-match search-match--secondary' : '',
+      isRoot        ? 'root-node'     : '',
+    ].filter(Boolean).join(' ');
+
+
 
     return (
       <g
         key={nodeId}
         transform={`translate(${x}, ${y})`}
-        className={[
-          'mind-node',
-          isSelected   ? 'selected'     : '',
-          isDropTarget ? 'drop-target'  : '',
-          isAnimating  ? 'animating'    : '',
-          isSearchMatch ? 'search-match' : '',
-          isRoot       ? 'root-node'    : '',
-        ].filter(Boolean).join(' ')}
+        className={nodeClasses}
         onClick={(e) => { e.stopPropagation(); onSelectNode(nodeId); }}
         onDoubleClick={(e) => { e.stopPropagation(); onEditNode(nodeId); }}
         onMouseDown={(e) => {
@@ -170,51 +235,32 @@ const CanvasNodes: React.FC<CanvasNodesProps> = ({
         {/* Root node halo */}
         {isRoot && (
           <rect
-            x={-nodeW / 2 - 8}
-            y={-nodeH / 2 - 8}
-            width={nodeW + 16}
-            height={nodeH + 16}
-            rx={14}
-            fill="none"
-            stroke="rgba(255, 255, 255, 0.12)"
-            strokeWidth={4}
+            x={-nodeW / 2 - 8} y={-nodeH / 2 - 8}
+            width={nodeW + 16}  height={nodeH + 16}
+            rx={14} fill="none"
+            stroke="rgba(255, 255, 255, 0.12)" strokeWidth={4}
             className="root-halo-outer"
           />
         )}
-
         {isRoot && (
           <rect
-            x={-nodeW / 2 - 3}
-            y={-nodeH / 2 - 3}
-            width={nodeW + 6}
-            height={nodeH + 6}
-            rx={10}
-            fill="none"
-            stroke="rgba(255, 255, 255, 0.55)"
-            strokeWidth={1.5}
+            x={-nodeW / 2 - 3} y={-nodeH / 2 - 3}
+            width={nodeW + 6}   height={nodeH + 6}
+            rx={10} fill="none"
+            stroke="rgba(255, 255, 255, 0.55)" strokeWidth={1.5}
             className="root-halo-inner"
           />
         )}
 
         {/* Node background */}
         <rect
-          x={-nodeW / 2}
-          y={-nodeH / 2}
-          width={nodeW}
-          height={nodeH}
+          x={-nodeW / 2} y={-nodeH / 2}
+          width={nodeW}   height={nodeH}
           rx={8}
           fill={bgColor}
           fillOpacity={opacity}
-          stroke={
-            bStyle === 'full'
-              ? bColor
-              : isSelected ? '#ffffff' : 'none'
-          }
-          strokeWidth={
-            bStyle === 'full'
-              ? (node.style.borderWidth || 2)
-              : isSelected ? 3 : 0
-          }
+          stroke={bStyle === 'full' ? bColor : isSelected ? '#ffffff' : 'none'}
+          strokeWidth={bStyle === 'full' ? (node.style.borderWidth || 2) : isSelected ? 3 : 0}
           className="node-bg"
         />
 
@@ -223,9 +269,7 @@ const CanvasNodes: React.FC<CanvasNodesProps> = ({
           <line
             x1={-nodeW / 2} y1={nodeH / 2}
             x2={ nodeW / 2} y2={nodeH / 2}
-            stroke={bColor}
-            strokeWidth={3}
-            strokeLinecap="round"
+            stroke={bColor} strokeWidth={3} strokeLinecap="round"
           />
         )}
 
@@ -280,22 +324,49 @@ const CanvasNodes: React.FC<CanvasNodesProps> = ({
             fontSize={fontSize}
             fontFamily={FONT_FAMILY}
             fontWeight={fontWeight}
-            className={`node-text ${isSearchMatch ? 'node-text--search' : ''}`}
+            className="node-text"
           >
-            {lines.map((line, i) => (
-              <tspan key={i} x={-nodeW / 2 + 42} dy={i === 0 ? 0 : LINE_HEIGHT}>
-                {line}
-              </tspan>
-            ))}
+            {wrappedLines.map((line, lineIdx) => {
+              // No search active on this node → plain render
+              if (!searchResult) {
+                return (
+                  <tspan key={lineIdx} x={-nodeW / 2 + 42} dy={lineIdx === 0 ? 0 : LINE_HEIGHT}>
+                    {line.text}
+                  </tspan>
+                );
+              }
+
+              const segments = splitLineByMatches(
+                line.text,
+                line.startOffset,
+                searchResult.textMatches,
+              );
+
+              return (
+                <tspan key={lineIdx} x={-nodeW / 2 + 42} dy={lineIdx === 0 ? 0 : LINE_HEIGHT}>
+                  {segments.map((seg, segIdx) =>
+                    seg.isMatch ? (
+                      <tspan
+                        key={segIdx}
+                        textDecoration="underline"
+                        style={{ textUnderlineOffset: '2px' }}
+                      >
+                        {seg.text}
+                      </tspan>
+                    ) : (
+                      <tspan key={segIdx}>{seg.text}</tspan>
+                    )
+                  )}
+                </tspan>
+              );
+            })}
           </text>
         )}
 
         {/* Status indicator */}
         {node.style.status && (
           <circle
-            cx={nodeW / 2 - 8}
-            cy={-nodeH / 2 + 8}
-            r={5}
+            cx={nodeW / 2 - 8} cy={-nodeH / 2 + 8} r={5}
             fill={
               node.style.status === 'done'        ? '#10B981' :
               node.style.status === 'in-progress' ? '#F59E0B' : '#6B7280'
