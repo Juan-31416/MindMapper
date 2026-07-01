@@ -18,6 +18,7 @@ import type Fuse from 'fuse.js';
 import type { MindMapNode as SearchableNode } from '../types/mindmap';
 import { normalizeHex } from '../utils/colorUtils';
 import { EdgeStyle } from '../utils/edges';
+import { stat } from 'fs';
 
 
 
@@ -68,6 +69,8 @@ interface MindMapStore {
   setSearchQuery: (query: string) => void;
   clearSearch: () => void;
   runSearchNow: () => void;
+  toggleCaseSensitive: () => void;
+  setActiveResutlIndex: (index: number) => void;
   addFavoriteColor: (color:string, userId?: string) => void;
   removeFavoriteColor: (color: string, userId?: string) => void;
   setEdgeStyle: (style: EdgeStyle) => void;
@@ -188,6 +191,8 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
     search: {
       query: '',
       results: [],
+      activeResultIndex: 0,
+      caseSensitive: false,
       isSearching: false,
       isActive: false,
       lastUpdatedAt: null,
@@ -208,6 +213,8 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
         search: {
           query: '',
           results: [],
+          activeResultIndex: 0,
+          caseSensitive: false,
           isSearching: false,
           isActive: false,
           lastUpdatedAt: null,
@@ -228,6 +235,8 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
         search: {
           query: '',
           results: [],
+          activeResultIndex: 0,
+          caseSensitive: false,
           isSearching: false,
           isActive: false,
           lastUpdatedAt: null,
@@ -248,6 +257,8 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
         search: {
           query: '',
           results: [],
+          activeResultIndex: 0,
+          caseSensitive: false,
           isSearching: false,
           isActive: false,
           lastUpdatedAt: null,
@@ -822,6 +833,7 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
         search: {
           ...state.search,
           query: trimmed,
+          activeResultIndex: 0,
           isActive: trimmed.length >= DEFAULT_SEARCH_CONFIG.MinQueryLength,
           lastUpdatedAt: now,
         },
@@ -833,6 +845,8 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
         search: {
           query: '',
           results: [],
+          activeResultIndex: 0,
+          caseSensitive: false,
           isSearching: false,
           isActive: false,
           lastUpdatedAt: null,
@@ -848,6 +862,7 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
           search: {
             ...state.search,
             results: [],
+            activeResultIndex: 0,
             isSearching: false,
           },
         }));
@@ -861,15 +876,36 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
         },
       }));
 
-      const results = runFuzzySearch(_searchIndex, query);
+      const results = runFuzzySearch(_searchIndex, query, search.caseSensitive);
 
       set((state) => ({
         search: {
           ...state.search,
           results,
+          activeResultIndex: 0,
           isSearching: false,
         },
       }));
     },
+
+    toggleCaseSensitive: () => {
+      set((state) => ({
+        search: {
+          ...state.search,
+          caseSensitive: !state.search.caseSensitive,
+          activeResultIndex: 0,
+        }
+      }));
+      get().runSearchNow();
+    },
+
+    setActiveResutlIndex: (index: number) => {
+      set((state) => ({
+        search: {
+          ...state.search,
+          activeResultIndex: index,
+        }
+      }))
+    }
   };
 });
