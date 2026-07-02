@@ -192,9 +192,9 @@ const CanvasNodes: React.FC<CanvasNodesProps> = ({
     const wrappedLines = wrapTextWithOffsets(node.text, nodeW - PADDING_H, isRoot);
     const totalTextHeight = wrappedLines.length * LINE_HEIGHT;
 
+    const hasIcon = Boolean(node.style.icon);
     const IconComponent = node.style.icon
-      ? (LucideIcons as any)[node.style.icon] || LucideIcons.Circle
-      : LucideIcons.Circle;
+      ? (LucideIcons as any)[node.style.icon!] || null : null;
 
     const bgColor  = node.style.backgroundColor;
     const opacity  = node.style.backgroundType === 'none'
@@ -205,6 +205,10 @@ const CanvasNodes: React.FC<CanvasNodesProps> = ({
     const bColor    = node.style.borderColor || node.style.backgroundColor;
     const fontSize   = isRoot ? FONT_SIZE + 3 : FONT_SIZE;
     const fontWeight = isRoot ? 'bold' : 'normal';
+
+    const TEXT_X_ICON = -nodeW / 2 + 42;
+    const TEXT_X_NO_ICON =-node / 2 + 14;
+    const textX = hasIcon ? TEXT_X_ICON : TEXT_X_NO_ICON;
 
     const nodeClasses = [
       'mind-node',
@@ -274,16 +278,18 @@ const CanvasNodes: React.FC<CanvasNodesProps> = ({
         )}
 
         {/* Icon */}
-        <g transform={`translate(${-nodeW / 2 + 15}, 0)`}>
-          <IconComponent size={18} color={textColor} x={-9} y={-9} />
-        </g>
+        {IconComponent && (
+          <g transform={`translate(${-nodeW / 2 + 15}, 0)`}>
+            <IconComponent size={18} color={textColor} x={-9} y={-9} />
+          </g>
+        )}
 
         {/* Text */}
         {isEditing ? (
           <foreignObject
-            x={-nodeW / 2 + 42}
+            x={textX}
             y={-totalTextHeight / 2}
-            width={nodeW - 55}
+            width={nodeW - (hasIcon ? 55 : 28)}
             height={totalTextHeight + 10}
           >
             <textarea
@@ -318,7 +324,7 @@ const CanvasNodes: React.FC<CanvasNodesProps> = ({
           </foreignObject>
         ) : (
           <text
-            x={-nodeW / 2 + 45}
+            x={textX}
             y={-(totalTextHeight / 2) + (LINE_HEIGHT * 0.75)}
             fill={textColor}
             fontSize={fontSize}
@@ -330,7 +336,7 @@ const CanvasNodes: React.FC<CanvasNodesProps> = ({
               // No search active on this node → plain render
               if (!searchResult) {
                 return (
-                  <tspan key={lineIdx} x={-nodeW / 2 + 42} dy={lineIdx === 0 ? 0 : LINE_HEIGHT}>
+                  <tspan key={lineIdx} x={textX} dy={lineIdx === 0 ? 0 : LINE_HEIGHT}>
                     {line.text}
                   </tspan>
                 );
@@ -343,7 +349,7 @@ const CanvasNodes: React.FC<CanvasNodesProps> = ({
               );
 
               return (
-                <tspan key={lineIdx} x={-nodeW / 2 + 42} dy={lineIdx === 0 ? 0 : LINE_HEIGHT}>
+                <tspan key={lineIdx} x={textX} dy={lineIdx === 0 ? 0 : LINE_HEIGHT}>
                   {segments.map((seg, segIdx) =>
                     seg.isMatch ? (
                       <tspan
