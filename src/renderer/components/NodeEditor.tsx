@@ -1,20 +1,21 @@
 import React, { useState, useRef } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { useMindMapStore } from '../store/mindMapStore';
-import { DEFAULT_COLORS } from '../types/mindmap';
-import '../styles/NodeEditor.css';
 import ColorPopover from './ColorPopover';
 import BorderPopover from './BorderPopover';
+import IconPopover from './IconPopover';
+import '../styles/NodeEditor.css';
+
 
 // Common icons for mind mapping
-const COMMON_ICONS = [
+/*const COMMON_ICONS = [
   'Circle', 'Star', 'Heart', 'Lightbulb', 'Target', 'Zap',
   'CheckCircle', 'AlertCircle', 'XCircle', 'Info',
   'Folder', 'File', 'Book', 'Bookmark',
   'User', 'Users', 'MessageSquare', 'Mail',
   'Calendar', 'Clock', 'Flag', 'Award',
   'TrendingUp', 'Activity', 'BarChart', 'PieChart',
-];
+];*/
 
 const NodeEditor: React.FC = () => {
   const {
@@ -81,6 +82,10 @@ const NodeEditor: React.FC = () => {
 
   const [colorAnchorRect, setColorAnchorRect] = useState<DOMRect | null>(null);
   const [borderAnchorRect, setBorderAnchorRect] = useState<DOMRect | null>(null);
+
+  const [showIconPopover, setShowIconPopover] = useState(false);
+  const iconAnchorRef = useRef<HTMLButtonElement | null>(null);
+  const [iconAnchorRect, setIconAnchorRect] = useState<DOMRect | null>(null);
 
   const patchStyle = (patch: Partial<any>) =>updateNodeStyle(selectedNodeId, patch);
 
@@ -193,24 +198,39 @@ const NodeEditor: React.FC = () => {
         </div>
 
         {/* Icon Picker */}
-        <div className="editor-section">
+        <div className="editor-section compact-controls">
           <h4>Icon</h4>
-          <div className="icon-picker">
-            {COMMON_ICONS.map((iconName) => {
-              const IconComponent = (LucideIcons as any)[iconName];
-              if (!IconComponent) return null;
+          <div className="compact-row">
+            <div className="compact-item">
+              <button
+                ref={iconAnchorRef}
+                className="icon-select-btn"
+                onClick={() => {
+                  setIconAnchorRect(iconAnchorRef.current?.getBoundingClientRect() ?? null);
+                  setShowIconPopover(v => !v);
+                }}
+              >
+                {selectedNode.style.icon ? (
+                  (() => {
+                    const Icon = (LucideIcons as any)[selectedNode.style.icon];
 
-              return (
-                <button
-                  key={iconName}
-                  className={`icon-option ${selectedNode.style.icon === iconName ? 'selected' : ''}`}
-                  onClick={() => handleIconChange(iconName)}
-                  title={iconName}
-                >
-                  <IconComponent size={20} />
-                </button>
-              );
-            })}
+                    return <Icon size={20} />;
+                  })()
+                ):(
+                  <LucideIcons.Ban size={20} className='icon-placeholder' />
+                )}
+                <LucideIcons.ChevronDown size={14} className='chevron' />
+              </button>
+
+              {showIconPopover && (
+                <IconPopover 
+                  anchorRect={iconAnchorRect}
+                  style={selectedNode.style}
+                  onChange={patchStyle}
+                  onClose={() => setShowIconPopover(false)}
+                />
+              )}
+            </div>
           </div>
         </div>
 
