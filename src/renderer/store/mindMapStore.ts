@@ -73,6 +73,7 @@ interface MindMapStore {
   addFavoriteColor: (color:string, userId?: string) => void;
   removeFavoriteColor: (color: string, userId?: string) => void;
   setEdgeStyle: (style: EdgeStyle) => void;
+  updateAllNodesStyle: (style: Partial<NodeStyle>) => void;
 }
 
 
@@ -581,6 +582,19 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
     setEdgeStyle: (edgeStyle: EdgeStyle) => {
       set({ edgeStyle });
       savePreferences({ edgeStyle });
+    },
+
+    updateAllNodesStyle: (style: Partial<NodeStyle>) => {
+      const { currentMap } = get();
+      if (!currentMap) return;
+
+      const newMap = deepClone(currentMap);
+      Object.values(newMap.nodes).forEach((node) => {
+        node.style = { ...node.style, ...style };
+      });
+      newMap.updatedAt = Date.now();
+
+      addToHistory(newMap);
     },
     
 

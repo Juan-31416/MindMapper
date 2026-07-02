@@ -144,7 +144,7 @@ export const MAX_FAVORITE_COLORS = 10;
 export const DEFAULT_NODE_STYLE: NodeStyle = {
   backgroundColor: '#60A5FA',
   textColor: '#FFFFFF',
-  icon: 'Circle',
+  icon: undefined,
   status: 'pending',
   backgroundOpacity: 100,
   backgroundType: 'solid',
