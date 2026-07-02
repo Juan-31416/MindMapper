@@ -78,8 +78,9 @@ mindmapper/
 │       ├── index.html        # main HTML
 │       │
 │       ├── components/             # React components
-│       │   ├── BorderPopover.tsx   # Borer selector pop-up window
+│       │   ├── BorderPopover.tsx   # Border selector pop-up window
 │       │   ├── ColorPopover.tsx    # Color selector pop-up window
+│       │   ├── IconPopover.tsx     # Icon selector pop-up window
 │       │   ├── NodeEditor.tsx      # Right sidebar editor
 │       │   ├── SearchBar.tsx       # Search bar component
 │       │   ├── Toolbar.tsx         # Top toolbar
@@ -93,7 +94,7 @@ mindmapper/
 │       │           ├── HierarchicalView.tsx
 │       │           └── RadialView.tsx
 │       │
-│       ├── hooks                   # hooks porcess
+│       ├── hooks                   # React custom hooks
 │       │   └── useFuzzySearch.ts   # Searching hooks
 │       │
 │       ├── store/              # State management
@@ -121,18 +122,19 @@ mindmapper/
 │       │       ├── radial.ts        # Radial layout
 │       │       └── shared.ts        # Types + constants + measureNodeDimensions
 │       │
-│       ├── templates/        # Mind map templates
+│       ├── templates/              # Mind map templates
 │       │   └── brainstorming.ts
 │       │
-│       └── styles/           # CSS stylesheets
-│           ├── App.css       # App layout
-│           ├── Canvas.css    # Canvas styles
-│           ├── ColorPopover  # Color and border popover styles
-│           ├── edges.css     # Edges styles
-│           ├── index.css     # Global styles
-│           ├── NodeEditor.css # Editor styles
-│           ├── SearchBar.css # Search bar styles
-│           └── Toolbar.css   # Toolbar styles
+│       └── styles/                 # CSS stylesheets
+│           ├── App.css             # App layout
+│           ├── Canvas.css          # Canvas styles
+│           ├── ColorPopover.css    # Color and border popover styles
+│           ├── edges.css           # Edges styles
+│           ├── IconPopover.css     # Icon popover styles
+│           ├── index.css           # Global styles
+│           ├── NodeEditor.css      # Editor styles
+│           ├── SearchBar.css       # Search bar styles
+│           └── Toolbar.css         # Toolbar styles
 │
 ├── dist/                     # Compiled output
 ├── release/                  # Packaged applications
@@ -140,7 +142,10 @@ mindmapper/
 │   └── issues/               # Issues documentation
 │       ├── ADR-001-issue-6-dynamic-node-sizing.md 
 │       ├── ADR-002-issue-5-node-background-personalization.md
-│       └── ADR-003-issue-12-advance-color-management.md 
+│       ├── ADR-003-issue-12-advance-color-management.md
+│       ├── ADR-004-issue-3-radial-view-refactor.md
+│       ├── ADR-005-issue-1-all-text-underlined-search.md
+│       └── ADR-006-issue-123-node-icon-options.md 
 ├── package.json              # Dependencies and scripts
 ├── tsconfig.json             # TypeScript configuration
 ├── vite.config.ts            # Vite configuration
@@ -390,10 +395,13 @@ MindMapper uses Zustand as its global state container.
 - Undo / Redo history
 - Current file
 - Dirty state
+- Global style operations (batch updates across nodes)
 
 Application state is immutable from the UI perspective and updated exclusively through store actions.
 
 The store represents the single source of truth for the renderer.
+
+Besides node-specific updates, the store also exposes batch style actions (e.g. updateAllNodesStyle) to perform global visual operations while preserving a single Undo/Redo history entry.
 
 ---
 
