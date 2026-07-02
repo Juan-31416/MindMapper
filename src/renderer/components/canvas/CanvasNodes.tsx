@@ -207,7 +207,7 @@ const CanvasNodes: React.FC<CanvasNodesProps> = ({
     const fontWeight = isRoot ? 'bold' : 'normal';
 
     const TEXT_X_ICON = -nodeW / 2 + 42;
-    const TEXT_X_NO_ICON =-node / 2 + 14;
+    const TEXT_X_NO_ICON = -nodeW / 2 + 14;
     const textX = hasIcon ? TEXT_X_ICON : TEXT_X_NO_ICON;
 
     const nodeClasses = [
