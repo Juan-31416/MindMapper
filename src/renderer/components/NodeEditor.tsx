@@ -6,17 +6,6 @@ import BorderPopover from './BorderPopover';
 import IconPopover from './IconPopover';
 import '../styles/NodeEditor.css';
 
-
-// Common icons for mind mapping
-/*const COMMON_ICONS = [
-  'Circle', 'Star', 'Heart', 'Lightbulb', 'Target', 'Zap',
-  'CheckCircle', 'AlertCircle', 'XCircle', 'Info',
-  'Folder', 'File', 'Book', 'Bookmark',
-  'User', 'Users', 'MessageSquare', 'Mail',
-  'Calendar', 'Clock', 'Flag', 'Award',
-  'TrendingUp', 'Activity', 'BarChart', 'PieChart',
-];*/
-
 const NodeEditor: React.FC = () => {
   const {
     currentMap,

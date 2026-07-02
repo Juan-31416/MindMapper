@@ -26,10 +26,13 @@
   "dependencies": {
     "dagre": "^0.8.5",
     "fuse.js": "^7.1.0",
+    "i18next": "^26.3.4",
+    "i18next-http-backend": "^4.0.0",
     "lucide-react": "^0.294.0",
     "react": "^18.2.0",
     "react-colorful": "^5.7.0",
     "react-dom": "^18.2.0",
+    "react-i18next": "^17.0.8",
     "zustand": "^4.4.7"
   },
   "devDependencies": {

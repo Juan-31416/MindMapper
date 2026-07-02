@@ -17,7 +17,7 @@ import { createSearchIndex, runSearch as runFuzzySearch, DEFAULT_SEARCH_CONFIG }
 import type Fuse from 'fuse.js';
 import type { MindMapNode as SearchableNode } from '../types/mindmap';
 import { normalizeHex } from '../utils/colorUtils';
-import { EdgeStyle } from '../utils/edges';
+import { SettingsService, EdgeStyle } from '../services/settingsService';
 
 
 
@@ -36,6 +36,8 @@ interface MindMapStore {
   _searchIndex?: Fuse<SearchableNode> | null;
   favoriteColors: FavoriteColor[];
   edgeStyle: EdgeStyle;
+  language: string;
+
 
   // Actions
   createNewMap: (name: string) => void;
@@ -74,6 +76,7 @@ interface MindMapStore {
   removeFavoriteColor: (color: string, userId?: string) => void;
   setEdgeStyle: (style: EdgeStyle) => void;
   updateAllNodesStyle: (style: Partial<NodeStyle>) => void;
+  setLanguage: (lang: string) => void;
 }
 
 
@@ -81,37 +84,6 @@ interface MindMapStore {
 /***********************************
  *           UTILITIES
  *********************************** */
-
-const STORAGE_KEY = 'mindmapper-preferences';
-
-interface StoredPreferences {
-  layout?: LayoutType;
-  theme?: 'light' | 'dark';
-  favoriteColors?: FavoriteColor[];
-  edgeStyle?: EdgeStyle;
-}
-
-const loadPreferences = () => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? (JSON.parse(stored) as StoredPreferences) : {};
-  } catch (error) {
-    console.error('Error loading preferences: ', error);
-    return {};
-  }
-};
-
-const savePreferences = (patch: Partial<StoredPreferences>): void => {
-  try {
-    const current = loadPreferences();
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ ...current, ...patch })
-    );
-  } catch (error) {
-    console.error('Error saving preferences: ', error);
-  }
-};
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
@@ -151,7 +123,7 @@ const safeNumber = (value: number | undefined, fallback: number): number => {
  ************************************* */
 
 export const useMindMapStore = create<MindMapStore>((set, get) => {
-  const preferences = loadPreferences();
+  const preferences = SettingsService.load();
 
   // Helper to add current map to history
   const addToHistory = (newMap: MindMap) => {
@@ -186,6 +158,7 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
     isDirty: false,
     favoriteColors:preferences.favoriteColors ?? [],
     edgeStyle: preferences.edgeStyle || 'curved',
+    language: preferences.language,
 
     // Initial search
     search: {
@@ -519,12 +492,12 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
 
     setLayout: (layout: LayoutType) => {
       set({ layout });
-      savePreferences({ layout });
+      SettingsService.save({ layout });
     },
 
     setTheme: (theme: 'light' | 'dark') => {
       set({ theme });
-      savePreferences({ theme });
+      SettingsService.save({ theme });
     },
 
 
@@ -581,7 +554,7 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
 
     setEdgeStyle: (edgeStyle: EdgeStyle) => {
       set({ edgeStyle });
-      savePreferences({ edgeStyle });
+      SettingsService.save({ edgeStyle });
     },
 
     updateAllNodesStyle: (style: Partial<NodeStyle>) => {
@@ -595,6 +568,11 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
       newMap.updatedAt = Date.now();
 
       addToHistory(newMap);
+    },
+
+    setLanguage: (lang: string) => {
+      set({ language: lang });
+      SettingsService.save({ language: lang });
     },
     
 
@@ -620,7 +598,7 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
 
       const updated = [...trimmed, newEntry];
       set({ favoriteColors:updated });
-      savePreferences({ favoriteColors: updated });
+      SettingsService.save({ favoriteColors: updated });
     },
 
     removeFavoriteColor: (color: string, userId?: string) => {
@@ -632,7 +610,7 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
       );
 
       set({ favoriteColors: updated });
-      savePreferences({ favoriteColors: updated });
+      SettingsService.save({ favoriteColors: updated });
     },
 
 
