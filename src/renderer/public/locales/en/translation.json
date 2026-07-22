@@ -1,0 +1,185 @@
+{
+    "common": {
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "ok": "OK",
+      "close": "Close",
+      "save": "Save",
+      "error": "Error",
+      "continue": "Continue",
+      "yes": "Yes",
+      "no": "No"
+    },
+  
+    "toolbar": {
+      "new": "New",
+      "newFromTemplate": "New from Template",
+      "open": "Open",
+      "save": "Save",
+      "undo": "Undo",
+      "redo": "Redo",
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out",
+      "hierarchical": "Hierarchical",
+      "radial": "Radial",
+      "curved": "Curved",
+      "straight": "Straight",
+      "toggleTheme": "Toggle Theme",
+      "tooltips": {
+        "new": "New from Template",
+        "open": "Open (Ctrl+O)",
+        "save": "Save (Ctrl+S)",
+        "undo": "Undo (Ctrl+Z)",
+        "redo": "Redo (Ctrl+Y)",
+        "zoomIn": "Zoom In",
+        "zoomOut": "Zoom Out",
+        "hierarchical": "Hierarchical View",
+        "radial": "Radial View",
+        "curved": "Curved lines (click for straight)",
+        "straight": "Straight lines (click for curved)",
+        "toggleTheme": "Toggle Theme (Ctrl+T)",
+        "settings": "Settings"
+      }
+    },
+  
+    "dialogs": {
+      "unsavedChanges": {
+        "title": "Unsaved Changes",
+        "message": "You have unsaved changes. Do you want to continue?",
+        "cancel": "Cancel",
+        "continue": "Continue"
+      },
+      "closeWindow": {
+        "title": "Unsaved Changes",
+        "message": "You have unsaved changes. Do you want to save before closing?",
+        "cancel": "Cancel",
+        "closeWithoutSaving": "Close without saving",
+        "saveAndClose": "Save and close"
+      },
+      "saveError": {
+        "title": "Save Error",
+        "message": "Could not save the map"
+      },
+      "openError": {
+        "title": "Open Error",
+        "message": "Could not open the map"
+      },
+      "exportSuccess": {
+        "title": "Export Successful",
+        "message": "Map exported successfully"
+      },
+      "exportError": {
+        "title": "Export Error",
+        "message": "Could not export the map"
+      }
+    },
+  
+    "canvas": {
+      "loading": "Loading MindMapper...",
+      "defaultNodeText": "New idea",
+      "newNode": "New node"
+    },
+  
+    "nodeEditor": {
+      "title": "Node Properties",
+      "empty": "Select a node to edit",
+      "sections": {
+        "nodeInfo": "Node Info",
+        "actions": "Actions",
+        "appearance": "Appearance",
+        "icon": "Icon",
+        "status": "Status",
+        "shortcuts": "Keyboard Shortcuts"
+      },
+      "info": {
+        "text": "Text:",
+        "children": "Children:"
+      },
+      "actions": {
+        "addChild": "Add Child",
+        "addSibling": "Add Sibling",
+        "delete": "Delete",
+        "tooltips": {
+          "addChild": "Create child node (Tab)",
+          "addSibling": "Create sibling node (Enter)",
+          "delete": "Delete node (Delete)"
+        }
+      },
+      "appearance": {
+        "color": "Color",
+        "border": "Border",
+        "borderNone": "None",
+        "borderBottom": "Bottom",
+        "borderFull": "Full",
+        "openColorPalette": "Open color palette",
+        "editBorder": "Edit border"
+      },
+      "status": {
+        "pending": "Pending",
+        "inProgress": "In Progress",
+        "done": "Done"
+      },
+      "shortcuts": {
+        "createChild": "Create child node",
+        "createSibling": "Create sibling node",
+        "deleteNode": "Delete node",
+        "editText": "Edit node text",
+        "undo": "Undo",
+        "redo": "Redo"
+      }
+    },
+  
+    "searchBar": {
+      "placeholder": "Search nodes... (Esc to close)",
+      "clearSearch": "Clear search",
+      "close": "Close (Esc)",
+      "minChars": "Type at least {{count}} characters",
+      "resultCount": "{{current}} of {{total}}",
+      "noResults": "No nodes found",
+      "previous": "Previous (Shift+Enter)",
+      "next": "Next (Enter)",
+      "caseSensitive": "Case sensitive (Aa)"
+    },
+  
+    "settings": {
+      "title": "Settings",
+      "sections": {
+        "language": "Language",
+        "appearance": "Appearance"
+      },
+      "language": {
+        "label": "Application language",
+        "es": "Español",
+        "en": "English",
+        "de": "Deutsch",
+        "fr": "Français",
+        "ja": "日本語"
+      }
+    },
+  
+    "menu": {
+      "file": "File",
+      "newMap": "New Map",
+      "open": "Open...",
+      "save": "Save",
+      "saveAs": "Save As...",
+      "export": "Export",
+      "exportPDF": "Export to PDF",
+      "exportJSON": "Export to JSON",
+      "exit": "Exit",
+      "edit": "Edit",
+      "undo": "Undo",
+      "redo": "Redo",
+      "view": "View",
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out",
+      "resetZoom": "Reset Zoom",
+      "fitToScreen": "Fit to Screen",
+      "toggleTheme": "Toggle Theme",
+      "help": "Help",
+      "documentation": "Documentation",
+      "shortcuts": "Keyboard Shortcuts",
+      "about": "About MindMapper",
+      "aboutDetail": "A local, private mind mapping tool."
+    }
+  }
