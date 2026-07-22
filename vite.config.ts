@@ -9,15 +9,20 @@ export default defineConfig({
   root: './src/renderer',
   base: './',
   esbuild: {
-    jsx: 'automatic'
+    jsx: 'automatic',
+    tsconfigRaw: {
+      compilerOptions: {
+        target: 'ES2020',
+      }
+    }
   },
   server: {
     port: 5173,
-    strictPort: false, // Allow fallback to other ports if 5173 is busy
+    strictPort: false,
     watch: {
       // Use polling to prevent EMFILE errors on Linux systems
       usePolling: true,
-      interval: 2000, // Increased interval to reduce file system pressure
+      interval: 2000, 
       ignored: [
         '**/node_modules/**',
         '**/dist/**',
@@ -46,8 +51,17 @@ export default defineConfig({
   },
   // Optimize dependencies to reduce file watching
   optimizeDeps: {
-    include: ['react', 'react-dom', 'zustand', 'lucide-react', 'dagre'],
-    force: false // Don't force re-optimization unless needed
+    include: [
+      'react', 
+      'react-dom', 
+      'zustand', 
+      'lucide-react', 
+      'dagre', 
+      'i18next',
+      'react-i18next',
+      'i18next-http-backend',
+    ],
+    force: false, // Don't force re-optimization unless needed
   },
   // Reduce file watching overhead
   define: {

@@ -1,5 +1,6 @@
 
 {
+  "extends": "./tsconfig.json",
   "compilerOptions": {
     "target": "ES2020",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
@@ -10,7 +11,8 @@
     "outDir": "./dist/renderer",
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
-    "noEmit": true
+    "noEmit": true,
+    "types": ["vite/client"],
   },
   "include": [
     "src/renderer/**/*"

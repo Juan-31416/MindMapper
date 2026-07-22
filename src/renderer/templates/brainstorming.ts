@@ -1,4 +1,7 @@
 import { MindMap, MindMapNode } from '../types/mindmap';
+import { DEFAULT_NODE_STYLE } from '../types/mindmap';
+
+
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
@@ -15,6 +18,7 @@ export function createBrainstormingTemplate(): MindMap {
     parentId: null,
     children: [],
     style: {
+      ...DEFAULT_NODE_STYLE,
       backgroundColor: '#8b5cf6',
       textColor: '#ffffff',
       borderColor: '#7c3aed',
@@ -37,6 +41,7 @@ export function createBrainstormingTemplate(): MindMap {
     parentId: rootId,
     children: [],
     style: {
+      ...DEFAULT_NODE_STYLE,
       backgroundColor: '#3b82f6',
       textColor: '#ffffff',
       borderColor: '#2563eb',
@@ -58,6 +63,7 @@ export function createBrainstormingTemplate(): MindMap {
     parentId: concept1Id,
     children: [],
     style: {
+      ...DEFAULT_NODE_STYLE,
       backgroundColor: '#dbeafe',
       textColor: '#1e40af',
       borderColor: '#60a5fa',
@@ -78,6 +84,7 @@ export function createBrainstormingTemplate(): MindMap {
     parentId: concept1Id,
     children: [],
     style: {
+      ...DEFAULT_NODE_STYLE,
       backgroundColor: '#dbeafe',
       textColor: '#1e40af',
       borderColor: '#60a5fa',
@@ -101,6 +108,7 @@ export function createBrainstormingTemplate(): MindMap {
     parentId: rootId,
     children: [],
     style: {
+      ...DEFAULT_NODE_STYLE,
       backgroundColor: '#10b981',
       textColor: '#ffffff',
       borderColor: '#059669',
@@ -122,6 +130,7 @@ export function createBrainstormingTemplate(): MindMap {
     parentId: concept2Id,
     children: [],
     style: {
+      ...DEFAULT_NODE_STYLE,
       backgroundColor: '#d1fae5',
       textColor: '#065f46',
       borderColor: '#34d399',
@@ -142,6 +151,7 @@ export function createBrainstormingTemplate(): MindMap {
     parentId: concept2Id,
     children: [],
     style: {
+      ...DEFAULT_NODE_STYLE,
       backgroundColor: '#d1fae5',
       textColor: '#065f46',
       borderColor: '#34d399',
@@ -165,6 +175,7 @@ export function createBrainstormingTemplate(): MindMap {
     parentId: rootId,
     children: [],
     style: {
+      ...DEFAULT_NODE_STYLE,
       backgroundColor: '#f59e0b',
       textColor: '#ffffff',
       borderColor: '#d97706',
@@ -186,6 +197,7 @@ export function createBrainstormingTemplate(): MindMap {
     parentId: concept3Id,
     children: [],
     style: {
+      ...DEFAULT_NODE_STYLE,
       backgroundColor: '#fef3c7',
       textColor: '#92400e',
       borderColor: '#fbbf24',
@@ -206,6 +218,7 @@ export function createBrainstormingTemplate(): MindMap {
     parentId: concept3Id,
     children: [],
     style: {
+      ...DEFAULT_NODE_STYLE,
       backgroundColor: '#fef3c7',
       textColor: '#92400e',
       borderColor: '#fbbf24',
@@ -229,6 +242,7 @@ export function createBrainstormingTemplate(): MindMap {
     parentId: rootId,
     children: [],
     style: {
+      ...DEFAULT_NODE_STYLE,
       backgroundColor: '#ef4444',
       textColor: '#ffffff',
       borderColor: '#dc2626',
@@ -250,6 +264,7 @@ export function createBrainstormingTemplate(): MindMap {
     parentId: concept4Id,
     children: [],
     style: {
+      ...DEFAULT_NODE_STYLE,
       backgroundColor: '#fee2e2',
       textColor: '#991b1b',
       borderColor: '#f87171',
@@ -270,6 +285,7 @@ export function createBrainstormingTemplate(): MindMap {
     parentId: concept4Id,
     children: [],
     style: {
+      ...DEFAULT_NODE_STYLE,
       backgroundColor: '#fee2e2',
       textColor: '#991b1b',
       borderColor: '#f87171',
@@ -326,6 +342,7 @@ export function createBlankTemplate(): MindMap {
     parentId: null,
     children: [],
     style: {
+      ...DEFAULT_NODE_STYLE,
       backgroundColor: '#8b5cf6',
       textColor: '#ffffff',
       borderColor: '#7c3aed',

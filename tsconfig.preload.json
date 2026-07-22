@@ -2,9 +2,10 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "outDir": "./dist/preload"
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "outDir": "./dist/preload",
+    "lib": ["ES2020", "DOM"]
   },
   "include": [
     "src/preload/**/*"
