@@ -1,5 +1,6 @@
-
 import { contextBridge, ipcRenderer } from 'electron';
+
+
 
 // =============================================================================
 // Types for IPC API
@@ -38,6 +39,34 @@ export interface MessageBoxOptions {
   cancelId?: number;
 }
 
+export interface MenuLabels {
+  file: string;
+  newMap: string;
+  open: string;
+  save: string;
+  saveAs: string;
+  export: string;
+  exportPDF: string;
+  exportJSON: string;
+  exit: string;
+  edit: string;
+  undo: string;
+  redo: string;
+  view: string;
+  zoomIn: string;
+  zoomOut: string;
+  resetZoom: string;
+  fitToScreen: string;
+  toggleTheme: string;
+  help: string;
+  documentation: string;
+  shortcuts: string;
+  about: string;
+  aboutDetail: string;
+}
+
+
+
 // =============================================================================
 // Exposed API
 // =============================================================================
@@ -57,6 +86,7 @@ export interface ElectronAPI {
   };
   app: {
     getPath: (name: 'home' | 'documents' | 'downloads' | 'userData') => Promise<AppPathResult>;
+    getLocale: () => Promise<string>;
   };
   menu: {
     onNew: (callback: () => void) => void;
@@ -73,6 +103,7 @@ export interface ElectronAPI {
     onFitToScreen: (callback: () => void) => void;
     onToggleTheme: (callback: () => void) => void;
     onShowShortcuts: (callback: () => void) => void;
+    setLabels: (labels: MenuLabels) => Promise<void>;
   };
   window: {
     onBeforeClose: (callback: () => void) => void;
@@ -106,24 +137,25 @@ const api: ElectronAPI = {
       ipcRenderer.invoke('dialog:showMessage', options),
   },
   app: {
-    getPath: (name: 'home' | 'documents' | 'downloads' | 'userData') => 
-      ipcRenderer.invoke('app:getPath', name),
+    getPath: (name: 'home' | 'documents' | 'downloads' | 'userData') => ipcRenderer.invoke('app:getPath', name),
+    getLocale: () => ipcRenderer.invoke('app:getLocale'),
   },
   menu: {
-    onNew: (callback) => ipcRenderer.on('menu:new', callback),
-    onOpen: (callback) => ipcRenderer.on('menu:open', callback),
-    onSave: (callback) => ipcRenderer.on('menu:save', callback),
-    onSaveAs: (callback) => ipcRenderer.on('menu:saveAs', callback),
-    onExportPDF: (callback) => ipcRenderer.on('menu:exportPDF', callback),
-    onExportJSON: (callback) => ipcRenderer.on('menu:exportJSON', callback),
-    onUndo: (callback) => ipcRenderer.on('menu:undo', callback),
-    onRedo: (callback) => ipcRenderer.on('menu:redo', callback),
-    onZoomIn: (callback) => ipcRenderer.on('menu:zoomIn', callback),
-    onZoomOut: (callback) => ipcRenderer.on('menu:zoomOut', callback),
-    onResetZoom: (callback) => ipcRenderer.on('menu:resetZoom', callback),
-    onFitToScreen: (callback) => ipcRenderer.on('menu:fitToScreen', callback),
-    onToggleTheme: (callback) => ipcRenderer.on('menu:toggleTheme', callback),
-    onShowShortcuts: (callback) => ipcRenderer.on('menu:showShortcuts', callback),
+    onNew: (callback) => ipcRenderer.on('menu:new', () => callback),
+    onOpen: (callback) => ipcRenderer.on('menu:open', () => callback),
+    onSave: (callback) => ipcRenderer.on('menu:save', () => callback),
+    onSaveAs: (callback) => ipcRenderer.on('menu:saveAs', () => callback),
+    onExportPDF: (callback) => ipcRenderer.on('menu:exportPDF', () => callback),
+    onExportJSON: (callback) => ipcRenderer.on('menu:exportJSON', () => callback),
+    onUndo: (callback) => ipcRenderer.on('menu:undo', () => callback),
+    onRedo: (callback) => ipcRenderer.on('menu:redo', () => callback),
+    onZoomIn: (callback) => ipcRenderer.on('menu:zoomIn', () => callback),
+    onZoomOut: (callback) => ipcRenderer.on('menu:zoomOut', () => callback),
+    onResetZoom: (callback) => ipcRenderer.on('menu:resetZoom', () => callback),
+    onFitToScreen: (callback) => ipcRenderer.on('menu:fitToScreen', () => callback),
+    onToggleTheme: (callback) => ipcRenderer.on('menu:toggleTheme', () => callback),
+    onShowShortcuts: (callback) => ipcRenderer.on('menu:showShortcuts', () => callback),
+    setLabels: (labels: any) => ipcRenderer.invoke('menu:setLabels', labels),
   },
   window: {
     onBeforeClose: (callback) => ipcRenderer.on('window:beforeClose', callback),

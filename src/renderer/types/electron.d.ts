@@ -34,6 +34,32 @@ export interface MessageBoxOptions {
   cancelId?: number;
 }
 
+export interface MenuLabels {
+  file: string;
+  newMap: string;
+  open: string;
+  save: string;
+  saveAs: string;
+  export: string;
+  exportPDF: string;
+  exportJSON: string;
+  exit: string;
+  edit: string;
+  undo: string;
+  redo: string;
+  view: string;
+  zoomIn: string;
+  zoomOut: string;
+  resetZoom: string;
+  fitToScreen: string;
+  toggleTheme: string;
+  help: string;
+  documentation: string;
+  shortcuts: string;
+  about: string;
+  aboutDetail: string;
+}
+
 export interface ElectronAPI {
   file: {
     save: (filePath: string, content: string) => Promise<FileOperationResult>;
@@ -49,6 +75,7 @@ export interface ElectronAPI {
   };
   app: {
     getPath: (name: 'home' | 'documents' | 'downloads' | 'userData') => Promise<AppPathResult>;
+    getLocale: () => Promise<string>;
   };
   menu: {
     onNew: (callback: () => void) => void;
@@ -65,6 +92,7 @@ export interface ElectronAPI {
     onFitToScreen: (callback: () => void) => void;
     onToggleTheme: (callback: () => void) => void;
     onShowShortcuts: (callback: () => void) => void;
+    setLabels: (labels: MenuLabels) => Promise<void>;
   };
   window: {
     onBeforeClose: (callback: () => void) => void;

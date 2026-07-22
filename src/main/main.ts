@@ -60,20 +60,22 @@ function createWindow() {
 // Application Menu
 // =============================================================================
 
-function createApplicationMenu() {
+function createApplicationMenu(labels?: any) {
+  const isDefault = !labels;
+
   const template: any[] = [
     {
-      label: 'File',
+      label: labels?.file || 'File',
       submenu: [
         {
-          label: 'New',
+          label: labels?.newMap || 'New',
           accelerator: 'CmdOrCtrl+N',
           click: () => {
             mainWindow?.webContents.send('menu:new');
           }
         },
         {
-          label: 'Open...',
+          label: labels?.open || 'Open...',
           accelerator: 'CmdOrCtrl+O',
           click: () => {
             mainWindow?.webContents.send('menu:open');
@@ -81,14 +83,14 @@ function createApplicationMenu() {
         },
         { type: 'separator' },
         {
-          label: 'Save',
+          label: labels?.save || 'Save',
           accelerator: 'CmdOrCtrl+S',
           click: () => {
             mainWindow?.webContents.send('menu:save');
           }
         },
         {
-          label: 'Save As...',
+          label: labels?.saveAs || 'Save As...',
           accelerator: 'CmdOrCtrl+Shift+S',
           click: () => {
             mainWindow?.webContents.send('menu:saveAs');
@@ -96,17 +98,17 @@ function createApplicationMenu() {
         },
         { type: 'separator' },
         {
-          label: 'Export',
+          label: labels?.export || 'Export',
           submenu: [
             {
-              label: 'Export to PDF...',
+              label: labels?.exportPDF || 'Export to PDF...',
               accelerator: 'CmdOrCtrl+E',
               click: () => {
                 mainWindow?.webContents.send('menu:exportPDF');
               }
             },
             {
-              label: 'Export to JSON...',
+              label: labels?.exportJSON || 'Export to JSON...',
               click: () => {
                 mainWindow?.webContents.send('menu:exportJSON');
               }
@@ -115,7 +117,7 @@ function createApplicationMenu() {
         },
         { type: 'separator' },
         {
-          label: 'Exit',
+          label: labels?.exit || 'Exit',
           accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Alt+F4',
           click: () => {
             app.quit();
@@ -124,17 +126,17 @@ function createApplicationMenu() {
       ]
     },
     {
-      label: 'Edit',
+      label: labels?.edit || 'Edit',
       submenu: [
         {
-          label: 'Undo',
+          label: labels?.undo || 'Undo',
           accelerator: 'CmdOrCtrl+Z',
           click: () => {
             mainWindow?.webContents.send('menu:undo');
           }
         },
         {
-          label: 'Redo',
+          label: labels?.redo || 'Redo',
           accelerator: 'CmdOrCtrl+Shift+Z',
           click: () => {
             mainWindow?.webContents.send('menu:redo');
@@ -148,7 +150,7 @@ function createApplicationMenu() {
       ]
     },
     {
-      label: 'View',
+      label: labels?.view || 'View',
       submenu: [
         {
           label: 'Zoom In',
@@ -158,21 +160,21 @@ function createApplicationMenu() {
           }
         },
         {
-          label: 'Zoom Out',
+          label: labels?.zoomOut || 'Zoom Out',
           accelerator: 'CmdOrCtrl+-',
           click: () => {
             mainWindow?.webContents.send('menu:zoomOut');
           }
         },
         {
-          label: 'Reset Zoom',
+          label: labels?.resetZoom || 'Reset Zoom',
           accelerator: 'CmdOrCtrl+0',
           click: () => {
             mainWindow?.webContents.send('menu:resetZoom');
           }
         },
         {
-          label: 'Fit to Screen',
+          label: labels?.fitToScreen || 'Fit to Screen',
           accelerator: 'CmdOrCtrl+1',
           click: () => {
             mainWindow?.webContents.send('menu:fitToScreen');
@@ -180,7 +182,7 @@ function createApplicationMenu() {
         },
         { type: 'separator' },
         {
-          label: 'Toggle Theme',
+          label: labels?.toggleTheme || 'Toggle Theme',
           accelerator: 'CmdOrCtrl+T',
           click: () => {
             mainWindow?.webContents.send('menu:toggleTheme');
@@ -192,16 +194,16 @@ function createApplicationMenu() {
       ]
     },
     {
-      label: 'Help',
+      label: labels?.help || 'Help',
       submenu: [
         {
-          label: 'Documentation',
+          label: labels?.documentation || 'Documentation',
           click: async () => {
             await shell.openExternal('https://github.com/yourusername/mindmapper');
           }
         },
         {
-          label: 'Keyboard Shortcuts',
+          label: labels?.shortcuts || 'Keyboard Shortcuts',
           accelerator: 'CmdOrCtrl+/',
           click: () => {
             mainWindow?.webContents.send('menu:showShortcuts');
@@ -209,7 +211,7 @@ function createApplicationMenu() {
         },
         { type: 'separator' },
         {
-          label: 'About MindMapper',
+          label: labels?.about || 'About MindMapper',
           click: () => {
             dialog.showMessageBox(mainWindow!, {
               type: 'info',
@@ -451,6 +453,16 @@ ipcMain.handle('window:allowClose', async () => {
   }
   return { success: true };
 });
+
+ipcMain.handle('app:getLocale', () => {
+  return app.getLocale();
+});
+
+ipcMain.handle('menu:setLabels', (event, labels: any) => {
+  createApplicationMenu(labels); 
+});
+
+
 
 // =============================================================================
 // Error handling
