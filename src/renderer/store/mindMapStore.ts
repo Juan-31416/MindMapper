@@ -18,6 +18,7 @@ import type Fuse from 'fuse.js';
 import type { MindMapNode as SearchableNode } from '../types/mindmap';
 import { normalizeHex } from '../utils/colorUtils';
 import { SettingsService, EdgeStyle } from '../services/settingsService';
+import i18n, { resolveLocale, applyDirection, SupportedLocale } from '../i18n/i18n';
 
 
 
@@ -36,7 +37,7 @@ interface MindMapStore {
   _searchIndex?: Fuse<SearchableNode> | null;
   favoriteColors: FavoriteColor[];
   edgeStyle: EdgeStyle;
-  language: string;
+  language: SupportedLocale;
 
 
   // Actions
@@ -76,7 +77,7 @@ interface MindMapStore {
   removeFavoriteColor: (color: string, userId?: string) => void;
   setEdgeStyle: (style: EdgeStyle) => void;
   updateAllNodesStyle: (style: Partial<NodeStyle>) => void;
-  setLanguage: (lang: string) => void;
+  setLanguage: (lang: SupportedLocale) => void;
 }
 
 
@@ -158,7 +159,7 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
     isDirty: false,
     favoriteColors:preferences.favoriteColors ?? [],
     edgeStyle: preferences.edgeStyle || 'curved',
-    language: preferences.language,
+    language: resolveLocale(preferences.language),
 
     // Initial search
     search: {
@@ -570,9 +571,39 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
       addToHistory(newMap);
     },
 
-    setLanguage: (lang: string) => {
+    setLanguage: (lang: SupportedLocale) => {
       set({ language: lang });
       SettingsService.save({ language: lang });
+      i18n.changeLanguage(lang);
+      applyDirection(lang);
+
+      if (window.electronAPI?.menu?.setLabels) {
+        window.electronAPI.menu.setLabels({
+          file: i18n.t('menu.file'),
+          newMap: i18n.t('menu.newMap'),
+          open: i18n.t('menu.open'),
+          save: i18n.t('menu.save'),
+          saveAs: i18n.t('menu.saveAs'),
+          export: i18n.t('menu.export'),
+          exportPDF: i18n.t('menu.exportPDF'),
+          exportJSON: i18n.t('menu.exportJSON'),
+          exit: i18n.t('menu.exit'),
+          edit: i18n.t('menu.edit'),
+          undo: i18n.t('menu.undo'),
+          redo: i18n.t('menu.redo'),
+          view: i18n.t('menu.view'),
+          zoomIn: i18n.t('menu.zoomIn'),
+          zoomOut: i18n.t('menu.zoomOut'),
+          resetZoom: i18n.t('menu.resetZoom'),
+          fitToScreen: i18n.t('menu.fitToScreen'),
+          toggleTheme: i18n.t('menu.toggleTheme'),
+          help: i18n.t('menu.help'),
+          documentation: i18n.t('menu.documentation'),
+          shortcuts: i18n.t('menu.shortcuts'),
+          about: i18n.t('menu.about'),
+          aboutDetail: i18n.t('menu.aboutDetail'),
+        });
+      }
     },
     
 
