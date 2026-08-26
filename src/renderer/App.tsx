@@ -6,6 +6,7 @@ import SearchBar from './components/SearchBar';
 import { useMindMapStore } from './store/mindMapStore';
 import { initializeTheme, toggleTheme as utilToggleTheme } from './utils/theme';
 import { createBlankTemplate } from './templates/brainstorming';
+import SettingsModal from './components/SettingsModal';
 import './styles/App.css';
 
 
@@ -30,6 +31,7 @@ const App: React.FC = () => {
   
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Initialize theme
   useEffect(() => {
@@ -253,7 +255,7 @@ const App: React.FC = () => {
 
   return (
     <div className="app">
-      <Toolbar />
+      <Toolbar onOpenSettings={() => setIsSettingsOpen(true)} />
       
       <div className="app-content">
         <div className="canvas-area">
@@ -267,6 +269,11 @@ const App: React.FC = () => {
 
       <SearchBar
         isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+      />
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
         onClose={() => setIsSearchOpen(false)}
       />
     </div>

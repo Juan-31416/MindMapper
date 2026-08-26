@@ -3,9 +3,18 @@ import * as LucideIcons from 'lucide-react';
 import { useMindMapStore } from '../store/mindMapStore';
 import { toggleTheme, getCurrentTheme } from '../utils/theme';
 import { getAvailableTemplates } from '../templates/brainstorming';
+import { useTranslation } from 'react-i18next';
 import '../styles/Toolbar.css';
 
-const Toolbar: React.FC = () => {
+
+
+interface ToolbarProps {
+  onOpenSettings: () => void;
+}
+
+
+
+const Toolbar: React.FC<ToolbarProps> = ({ onOpenSettings }) => {
   const {
     currentMap,
     isDirty,
@@ -19,6 +28,8 @@ const Toolbar: React.FC = () => {
     setViewport,
     viewport,
   } = useMindMapStore();
+
+  const { t } = useTranslation();
 
   // Layout state
   const layout = useMindMapStore((state) => state.layout);
@@ -249,6 +260,13 @@ const Toolbar: React.FC = () => {
             title="Toggle Theme (Ctrl+T)"
           >
             {theme === 'dark' ? <LucideIcons.Sun size={20} /> : <LucideIcons.Moon size={20} />}
+          </button>
+          <button
+            className="toolbar-btn"
+            onClick={onOpenSettings}
+            title={t('toolbar.tooltips.settings')}
+          >
+            <LucideIcons.Settings size={20} />
           </button>
         </div>
       </div>
