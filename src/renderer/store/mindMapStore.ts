@@ -90,7 +90,7 @@ const generateId = () => Math.random().toString(36).substr(2, 9);
 
 const createRootNode = (): MindMapNode => ({
   id: generateId(),
-  text: 'Main Idea',
+  text: i18n.t('canvas.mainIdea'),
   parentId: null,
   children: [],
   style: { ...DEFAULT_NODE_STYLE },
@@ -247,7 +247,7 @@ export const useMindMapStore = create<MindMapStore>((set, get) => {
       
       const newNode: MindMapNode = {
         id: generateId(),
-        text: text || 'New Node',
+        text: text || i18n.t('canvas.newNode'),
         parentId: null,
         children: [],
         style: { ...DEFAULT_NODE_STYLE },

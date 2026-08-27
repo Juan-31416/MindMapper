@@ -4,9 +4,11 @@ import { useMindMapStore } from '../store/mindMapStore';
 import ColorPopover from './ColorPopover';
 import BorderPopover from './BorderPopover';
 import IconPopover from './IconPopover';
+import { useTranslation } from 'react-i18next';
 import '../styles/NodeEditor.css';
 
 const NodeEditor: React.FC = () => {
+  const { t } = useTranslation();
   const {
     currentMap,
     selectedNodeId,
@@ -20,7 +22,7 @@ const NodeEditor: React.FC = () => {
       <div className="node-editor">
         <div className="editor-empty">
           <LucideIcons.Info size={48} />
-          <p>Select a node to edit</p>
+          <p>{t('nodeEditor.empty')}</p>
         </div>
       </div>
     );
@@ -49,12 +51,12 @@ const NodeEditor: React.FC = () => {
   };
 
   const handleCreateChild = () => {
-    createNode(selectedNodeId, 'New Node', false);
+    createNode(selectedNodeId, t('canvas.newNode'), false);
   };
 
   const handleCreateSibling = () => {
     if (!isRootNode) {
-      createNode(selectedNodeId, 'New Node', true);
+      createNode(selectedNodeId, t('canvas.newNode'), true);
     }
   };
 
@@ -81,20 +83,20 @@ const NodeEditor: React.FC = () => {
   return (
     <div className="node-editor">
       <div className="editor-header">
-        <h3>Node Properties</h3>
+        <h3>{t('nodeEditor.title')}</h3>
       </div>
 
       <div className="editor-content">
         {/* Node Info */}
         <div className="editor-section">
-          <h4>Node Info</h4>
+          <h4>{t('nodeEditor.sections.nodeInfo')}</h4>
           <div className="node-info">
             <div className="info-item">
-              <span className="info-label">Text:</span>
+              <span className="info-label">{t('nodeEditor.info.text')}</span>
               <span className="info-value">{selectedNode.text}</span>
             </div>
             <div className="info-item">
-              <span className="info-label">Children:</span>
+              <span className="info-label">{t('nodeEditor.info.children')}</span>
               <span className="info-value">{selectedNode.children.length}</span>
             </div>
           </div>
@@ -102,43 +104,43 @@ const NodeEditor: React.FC = () => {
 
         {/* Actions */}
         <div className="editor-section">
-          <h4>Actions</h4>
+          <h4>{t('nodeEditor.sections.actions')}</h4>
           <div className="action-buttons">
             <button
               className="action-btn primary"
               onClick={handleCreateChild}
-              title="Create Child Node (Tab)"
+              title={t('nodeEditor.actions.tooltips.addChild')}
             >
               <LucideIcons.Plus size={16} />
-              Add Child
+              {t('nodeEditor.actions.addChild')}
             </button>
             <button
               className="action-btn secondary"
               onClick={handleCreateSibling}
               disabled={isRootNode}
-              title="Create Sibling Node (Enter)"
+              title={t('nodeEditor.actions.tooltips.addSibling')}
             >
               <LucideIcons.Plus size={16} />
-              Add Sibling
+              {t('nodeEditor.actions.addSibling')}
             </button>
             <button
               className="action-btn danger"
               onClick={handleDelete}
               disabled={isRootNode}
-              title="Delete Node (Delete)"
+              title={t('nodeEditor.actions.tooltips.delete')}
             >
               <LucideIcons.Trash2 size={16} />
-              Delete
+              {t('nodeEditor.actions.delete')}
             </button>
           </div>
         </div>
 
         {/* Color Picker + Border Controls */}
         <div className="editor-section compact-controls">
-          <h4>Apariencia</h4>
+          <h4>{t('nodeEditor.sections.appearance')}</h4>
           <div className="compact-row">
             <div className="compact-item">
-              <label className="label-small">Color</label>
+              <label className="label-small">{t('nodeEditor.appearance.color')}</label>
               <button
                 ref={colorAnchorRef}
                 className="color-swatch-btn"
@@ -147,7 +149,7 @@ const NodeEditor: React.FC = () => {
                   setColorAnchorRect(colorAnchorRef.current?.getBoundingClientRect() ?? null);
                   setShowColorPopover(v => !v);
                 }}
-                title="Abrir paleta de color"
+                title={t('nodeEditor.appearance.openColorPalette')}
               />
               {showColorPopover && (
                 <ColorPopover
@@ -160,7 +162,7 @@ const NodeEditor: React.FC = () => {
             </div>
 
             <div className="compact-item">
-              <label className="label-small">Borde</label>
+              <label className="label-small">{t('nodeEditor.appearance.border')}</label>
               <button
                 ref={borderAnchorRef}
                 className="border-btn"
@@ -168,10 +170,10 @@ const NodeEditor: React.FC = () => {
                   setBorderAnchorRect(borderAnchorRef.current?.getBoundingClientRect() ?? null);
                   setShowBorderPopover(v =>!v);
                 }}
-                title="Editar borde"
+                title={t('nodeEditor.appearance.editBorder')}
               >
-                {selectedNode.style.borderStyle === 'none' ? 'Ninguno' :
-                selectedNode.style.borderStyle === 'bottom' ? 'Inferior' : 'Completo'}
+                {selectedNode.style.borderStyle === 'none' ? t('nodeEditor.appearance.borderNone') :
+                selectedNode.style.borderStyle === 'bottom' ? t('nodeEditor.appearance.borderBottom') : t('nodeEditor.appearance.borderFull')}
               </button>
 
               {showBorderPopover && (
@@ -188,7 +190,7 @@ const NodeEditor: React.FC = () => {
 
         {/* Icon Picker */}
         <div className="editor-section compact-controls">
-          <h4>Icon</h4>
+          <h4>{t('nodeEditor.sections.icon')}</h4>
           <div className="compact-row">
             <div className="compact-item">
               <button
@@ -225,59 +227,59 @@ const NodeEditor: React.FC = () => {
 
         {/* Status Selector */}
         <div className="editor-section">
-          <h4>Status</h4>
+          <h4>{t('nodeEditor.sections.status')}</h4>
           <div className="status-selector">
             <button
               className={`status-option ${selectedNode.style.status === 'pending' ? 'selected' : ''}`}
               onClick={() => handleStatusChange('pending')}
             >
               <span className="status-dot pending"></span>
-              Pending
+              {t('nodeEditor.status.pending')}
             </button>
             <button
               className={`status-option ${selectedNode.style.status === 'in-progress' ? 'selected' : ''}`}
               onClick={() => handleStatusChange('in-progress')}
             >
               <span className="status-dot in-progress"></span>
-              In Progress
+              {t('nodeEditor.status.inProgress')}
             </button>
             <button
               className={`status-option ${selectedNode.style.status === 'done' ? 'selected' : ''}`}
               onClick={() => handleStatusChange('done')}
             >
               <span className="status-dot done"></span>
-              Done
+              {t('nodeEditor.status.done')}
             </button>
           </div>
         </div>
 
         {/* Keyboard Shortcuts */}
         <div className="editor-section shortcuts">
-          <h4>Keyboard Shortcuts</h4>
+          <h4>{t('nodeEditor.sections.shortcuts')}</h4>
           <div className="shortcuts-list">
             <div className="shortcut-item">
               <kbd>Tab</kbd>
-              <span>Create child node</span>
+              <span>{t('nodeEditor.shortcuts.createChild')}</span>
             </div>
             <div className="shortcut-item">
               <kbd>Enter</kbd>
-              <span>Create sibling node</span>
+              <span>{t('nodeEditor.shortcuts.createSibling')}</span>
             </div>
             <div className="shortcut-item">
               <kbd>Delete</kbd>
-              <span>Delete node</span>
+              <span>{t('nodeEditor.shortcuts.deleteNode')}</span>
             </div>
             <div className="shortcut-item">
               <kbd>Double Click</kbd>
-              <span>Edit node text</span>
+              <span>{t('nodeEditor.shortcuts.editText')}</span>
             </div>
             <div className="shortcut-item">
               <kbd>Ctrl+Z</kbd>
-              <span>Undo</span>
+              <span>{t('nodeEditor.shortcuts.undo')}</span>
             </div>
             <div className="shortcut-item">
               <kbd>Ctrl+Y</kbd>
-              <span>Redo</span>
+              <span>{t('nodeEditor.shortcuts.redo')}</span>
             </div>
           </div>
         </div>

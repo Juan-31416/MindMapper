@@ -1,185 +1,199 @@
 {
-    "common": {
-      "cancel": "Cancelar",
-      "confirm": "Confirmar",
-      "ok": "Aceptar",
-      "close": "Cerrar",
-      "save": "Guardar",
-      "error": "Error",
-      "continue": "Continuar",
-      "yes": "Sí",
-      "no": "No"
-    },
-  
-    "toolbar": {
-      "new": "Nuevo",
-      "newFromTemplate": "Nuevo desde plantilla",
-      "open": "Abrir",
-      "save": "Guardar",
-      "undo": "Deshacer",
-      "redo": "Rehacer",
+  "welcome": {
+    "title": "Bienvenido a MindMapper"
+  },
+
+  "common": {
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "ok": "Aceptar",
+    "close": "Cerrar",
+    "save": "Guardar",
+    "error": "Error",
+    "continue": "Continuar",
+    "yes": "Sí",
+    "no": "No"
+  },
+
+  "toolbar": {
+    "new": "Nuevo",
+    "newFromTemplate": "Nuevo desde plantilla",
+    "open": "Abrir",
+    "save": "Guardar",
+    "undo": "Deshacer",
+    "redo": "Rehacer",
+    "zoomIn": "Acercar",
+    "zoomOut": "Alejar",
+    "hierarchical": "Jerárquica",
+    "radial": "Radial",
+    "curved": "Curvas",
+    "straight": "Rectas",
+    "toggleTheme": "Cambiar tema",
+    "tooltips": {
+      "new": "Nuevo desde plantilla",
+      "open": "Abrir (Ctrl+O)",
+      "save": "Guardar (Ctrl+S)",
+      "undo": "Deshacer (Ctrl+Z)",
+      "redo": "Rehacer (Ctrl+Y)",
       "zoomIn": "Acercar",
       "zoomOut": "Alejar",
-      "hierarchical": "Jerárquica",
-      "radial": "Radial",
-      "curved": "Curvas",
-      "straight": "Rectas",
-      "toggleTheme": "Cambiar tema",
-      "tooltips": {
-        "new": "Nuevo desde plantilla",
-        "open": "Abrir (Ctrl+O)",
-        "save": "Guardar (Ctrl+S)",
-        "undo": "Deshacer (Ctrl+Z)",
-        "redo": "Rehacer (Ctrl+Y)",
-        "zoomIn": "Acercar",
-        "zoomOut": "Alejar",
-        "hierarchical": "Vista Jerárquica",
-        "radial": "Vista Radial",
-        "curved": "Líneas curvas (click para rectas)",
-        "straight": "Líneas rectas (click para curvas)",
-        "toggleTheme": "Cambiar tema (Ctrl+T)",
-        "settings": "Configuración"
-      }
-    },
-  
-    "dialogs": {
-      "unsavedChanges": {
-        "title": "Cambios sin guardar",
-        "message": "Tienes cambios sin guardar. ¿Deseas continuar?",
-        "cancel": "Cancelar",
-        "continue": "Continuar"
-      },
-      "closeWindow": {
-        "title": "Cambios sin guardar",
-        "message": "Tienes cambios sin guardar. ¿Deseas guardar antes de cerrar?",
-        "cancel": "Cancelar",
-        "closeWithoutSaving": "Cerrar sin guardar",
-        "saveAndClose": "Guardar y cerrar"
-      },
-      "saveError": {
-        "title": "Error al guardar",
-        "message": "No se pudo guardar el mapa"
-      },
-      "openError": {
-        "title": "Error al abrir",
-        "message": "No se pudo abrir el mapa"
-      },
-      "exportSuccess": {
-        "title": "Exportación exitosa",
-        "message": "Mapa exportado correctamente"
-      },
-      "exportError": {
-        "title": "Error al exportar",
-        "message": "No se pudo exportar el mapa"
-      }
-    },
-  
-    "canvas": {
-      "loading": "Cargando MindMapper...",
-      "defaultNodeText": "Nueva idea",
-      "newNode": "Nuevo nodo"
-    },
-  
-    "nodeEditor": {
-      "title": "Propiedades del nodo",
-      "empty": "Selecciona un nodo para editar",
-      "sections": {
-        "nodeInfo": "Información del nodo",
-        "actions": "Acciones",
-        "appearance": "Apariencia",
-        "icon": "Icono",
-        "status": "Estado",
-        "shortcuts": "Atajos de teclado"
-      },
-      "info": {
-        "text": "Texto:",
-        "children": "Hijos:"
-      },
-      "actions": {
-        "addChild": "Añadir hijo",
-        "addSibling": "Añadir hermano",
-        "delete": "Eliminar",
-        "tooltips": {
-          "addChild": "Crear nodo hijo (Tab)",
-          "addSibling": "Crear nodo hermano (Enter)",
-          "delete": "Eliminar nodo (Supr)"
-        }
-      },
-      "appearance": {
-        "color": "Color",
-        "border": "Borde",
-        "borderNone": "Ninguno",
-        "borderBottom": "Inferior",
-        "borderFull": "Completo",
-        "openColorPalette": "Abrir paleta de color",
-        "editBorder": "Editar borde"
-      },
-      "status": {
-        "pending": "Pendiente",
-        "inProgress": "En progreso",
-        "done": "Hecho"
-      },
-      "shortcuts": {
-        "createChild": "Crear nodo hijo",
-        "createSibling": "Crear nodo hermano",
-        "deleteNode": "Eliminar nodo",
-        "editText": "Editar texto del nodo",
-        "undo": "Deshacer",
-        "redo": "Rehacer"
-      }
-    },
-  
-    "searchBar": {
-      "placeholder": "Buscar nodos... (Esc para cerrar)",
-      "clearSearch": "Limpiar búsqueda",
-      "close": "Cerrar (Esc)",
-      "minChars": "Escribe al menos {{count}} caracteres",
-      "resultCount": "{{current}} de {{total}}",
-      "noResults": "No se encontraron nodos",
-      "previous": "Anterior (Shift+Enter)",
-      "next": "Siguiente (Enter)",
-      "caseSensitive": "Distinguir mayúsculas (Aa)"
-    },
-  
-    "settings": {
-      "title": "Configuración",
-      "sections": {
-        "language": "Idioma",
-        "appearance": "Apariencia"
-      },
-      "language": {
-        "label": "Idioma de la aplicación",
-        "es": "Español",
-        "en": "English",
-        "de": "Deutsch",
-        "fr": "Français",
-        "ja": "日本語"
-      }
-    },
-  
-    "menu": {
-      "file": "Archivo",
-      "newMap": "Nuevo mapa",
-      "open": "Abrir...",
-      "save": "Guardar",
-      "saveAs": "Guardar como...",
-      "export": "Exportar",
-      "exportPDF": "Exportar a PDF",
-      "exportJSON": "Exportar a JSON",
-      "exit": "Salir",
-      "edit": "Editar",
-      "undo": "Deshacer",
-      "redo": "Rehacer",
-      "view": "Vista",
-      "zoomIn": "Acercar",
-      "zoomOut": "Alejar",
-      "resetZoom": "Restablecer zoom",
-      "fitToScreen": "Ajustar a pantalla",
-      "toggleTheme": "Cambiar tema",
-      "help": "Ayuda",
-      "documentation": "Documentación",
-      "shortcuts": "Atajos de teclado",
-      "about": "Acerca de MindMapper",
-      "aboutDetail": "Una herramienta de mapas mentales local y privada."
+      "hierarchical": "Vista Jerárquica",
+      "radial": "Vista Radial",
+      "curved": "Líneas curvas (click para rectas)",
+      "straight": "Líneas rectas (click para curvas)",
+      "toggleTheme": "Cambiar tema (Ctrl+T)",
+      "settings": "Configuración"
     }
+  },
+
+  "dialogs": {
+    "unsavedChanges": {
+      "title": "Cambios sin guardar",
+      "message": "Tienes cambios sin guardar. ¿Deseas continuar?",
+      "cancel": "Cancelar",
+      "continue": "Continuar"
+    },
+    "closeWindow": {
+      "title": "Cambios sin guardar",
+      "message": "Tienes cambios sin guardar. ¿Deseas guardar antes de cerrar?",
+      "cancel": "Cancelar",
+      "closeWithoutSaving": "Cerrar sin guardar",
+      "saveAndClose": "Guardar y cerrar"
+    },
+    "saveError": {
+      "title": "Error al guardar",
+      "message": "No se pudo guardar el mapa"
+    },
+    "openError": {
+      "title": "Error al abrir",
+      "message": "No se pudo abrir el mapa"
+    },
+    "exportSuccess": {
+      "title": "Exportación exitosa",
+      "message": "Mapa exportado correctamente"
+    },
+    "exportError": {
+      "title": "Error al exportar",
+      "message": "No se pudo exportar el mapa"
+    }
+  },
+
+  "canvas": {
+    "loading": "Cargando MindMapper...",
+    "defaultNodeText": "Nueva idea",
+    "newNode": "Nuevo nodo",
+    "mainIdea": "Idea principal"
+  },
+
+  "nodeEditor": {
+    "title": "Propiedades del nodo",
+    "empty": "Selecciona un nodo para editar",
+    "sections": {
+      "nodeInfo": "Información del nodo",
+      "actions": "Acciones",
+      "appearance": "Apariencia",
+      "icon": "Icono",
+      "status": "Estado",
+      "shortcuts": "Atajos de teclado"
+    },
+    "info": {
+      "text": "Texto:",
+      "children": "Hijos:"
+    },
+    "actions": {
+      "addChild": "Añadir hijo",
+      "addSibling": "Añadir hermano",
+      "delete": "Eliminar",
+      "tooltips": {
+        "addChild": "Crear nodo hijo (Tab)",
+        "addSibling": "Crear nodo hermano (Enter)",
+        "delete": "Eliminar nodo (Supr)"
+      }
+    },
+    "appearance": {
+      "color": "Color",
+      "border": "Borde",
+      "borderNone": "Ninguno",
+      "borderBottom": "Inferior",
+      "borderFull": "Completo",
+      "openColorPalette": "Abrir paleta de color",
+      "editBorder": "Editar borde"
+    },
+    "status": {
+      "pending": "Pendiente",
+      "inProgress": "En progreso",
+      "done": "Hecho"
+    },
+    "shortcuts": {
+      "createChild": "Crear nodo hijo",
+      "createSibling": "Crear nodo hermano",
+      "deleteNode": "Eliminar nodo",
+      "editText": "Editar texto del nodo",
+      "undo": "Deshacer",
+      "redo": "Rehacer"
+    }
+  },
+
+  "searchBar": {
+    "placeholder": "Buscar nodos... (Esc para cerrar)",
+    "clearSearch": "Limpiar búsqueda",
+    "close": "Cerrar (Esc)",
+    "minChars": "Escribe al menos {{count}} caracteres",
+    "resultCount": "{{current}} de {{total}}",
+    "noResults": "No se encontraron nodos",
+    "previous": "Anterior (Shift+Enter)",
+    "next": "Siguiente (Enter)",
+    "caseSensitive": "Distinguir mayúsculas (Aa)"
+  },
+
+  "settings": {
+    "title": "Configuración",
+    "sections": {
+      "language": "Idioma",
+      "appearance": "Apariencia"
+    },
+    "language": {
+      "label": "Idioma de la aplicación",
+      "es": "Español",
+      "en": "English",
+      "de": "Deutsch",
+      "fr": "Français",
+      "ja": "日本語"
+    }
+  },
+
+  "menu": {
+    "file": "Archivo",
+    "newMap": "Nuevo mapa",
+    "open": "Abrir...",
+    "save": "Guardar",
+    "saveAs": "Guardar como...",
+    "export": "Exportar",
+    "exportPDF": "Exportar a PDF",
+    "exportJSON": "Exportar a JSON",
+    "exit": "Salir",
+    "edit": "Editar",
+    "undo": "Deshacer",
+    "redo": "Rehacer",
+    "view": "Vista",
+    "zoomIn": "Acercar",
+    "zoomOut": "Alejar",
+    "resetZoom": "Restablecer zoom",
+    "fitToScreen": "Ajustar a pantalla",
+    "toggleTheme": "Cambiar tema",
+    "help": "Ayuda",
+    "documentation": "Documentación",
+    "shortcuts": "Atajos de teclado",
+    "about": "Acerca de MindMapper",
+    "aboutDetail": "Una herramienta de mapas mentales local y privada."
+  },
+
+  "demo": {
+    "gettingStarted": "Primeros pasos",
+    "createNodesWithTab": "Crea nodos con Tab",
+    "editTextWithDoubleClick": "Edita el texto con doble clic",
+    "dragToReorganize": "Arrastra para reorganizar",
+    "features": "Funciones",
+    "customizeStyles": "Personaliza estilos"
   }
+}

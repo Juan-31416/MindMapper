@@ -2,9 +2,12 @@ import React, { useEffect, useRef } from "react";
 import * as LucideIcons from 'lucide-react';
 import { useMindMapStore } from "../store/mindMapStore";
 import { DEFAULT_SEARCH_CONFIG } from "../utils/searcher";
-import '../styles/SearchBar.css';
+import { useTranslation } from "react-i18next";
 import { MindMapNode } from "../types/mindmap";
 import { useFuzzySearch } from '../hooks/useFuzzySearch';
+import '../styles/SearchBar.css';
+
+
 
 interface SearchBarProps {
     isOpen: boolean;
@@ -12,6 +15,7 @@ interface SearchBarProps {
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
+    const { t } = useTranslation();
     const {
         focusOnNode,
         currentMap,
@@ -30,6 +34,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
 
     const inputRef = useRef<HTMLInputElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+
+
 
     // Auto-focus
     useEffect(() => {
@@ -142,7 +148,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
                         ref={inputRef}
                         type="text"
                         className="search-input"
-                        placeholder="Buscar nodos... (Esc para cerrar)"
+                        placeholder={t('searchBar.placeholder')}
                         value={query}
                         onChange={handleInputChange}
                         onKeyDown={handleKeyDown}
@@ -158,7 +164,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
                         <button
                             className="search-clear-btn"
                             onClick={() => setQuery('')}
-                            title="Limpiar búsqueda"
+                            title={t('searchBar.clearSearch')}
                         >
                             <LucideIcons.X size={16} />
                         </button>
@@ -169,12 +175,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
                     <div className="search-results-info">
                         {qLen < minLen ? (
                             <span className="search-no-results">
-                                Escribe al menos {minLen} caracteres
+                                {t('searchBar.minChars', { count: minLen })}
                             </span>
                         ) : hasResults ? (
                             <>
                                 <span className="search-count">
-                                    {search.activeResultIndex + 1} de {results.length}
+                                {t('searchBar.resultCount', { current: search.activeResultIndex + 1, total: results.length })}
                                 </span>
 
                                 <div className="search-navigation">
@@ -182,7 +188,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
                                         className="search-nav-btn"
                                         onClick={navigateToPrevious}
                                         disabled={results.length === 0}
-                                        title="Anterior (Shift+Enter)"
+                                        title={t('searchBar.previous')}
                                     >
                                         <LucideIcons.ChevronUp size={16} />
                                     </button>
@@ -191,7 +197,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
                                         className="search-nav-btn"
                                         onClick={navigateToNext}
                                         disabled={results.length === 0}
-                                        title="Siguiente (Enter)"
+                                        title={t('searchBar.next')}
                                     >
                                         <LucideIcons.ChevronDown size={16} />
                                     </button>
@@ -199,7 +205,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
                             </>
                         ) : (
                             <span className="search-no-results">
-                                No se encontraron nodos
+                                {t('searchBar.noResults')}
                             </span>
                         )}
 
@@ -208,7 +214,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
                             <button
                                 className={`search-nav-btn search-case-btn ${search.caseSensitive ? 'active' : ''}`}
                                 onClick={toggleCaseSensitive}
-                                title="Distinguir mayúsculas (Aa)"
+                                title={t('searchBar.caseSensitive')}
                             >
                                 <LucideIcons.CaseSensitive size={18} />
                             </button>
@@ -219,7 +225,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
                 <button
                     className="search-close-btn"
                     onClick={handleClose}
-                    title="Cerrar (Esc)"
+                    title={t('searchBar.close')}
                 >
                     <LucideIcons.X size={20} />
                 </button>
