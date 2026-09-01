@@ -237,14 +237,14 @@ const Toolbar: React.FC<ToolbarProps> = ({ onOpenSettings }) => {
             <LucideIcons.ZoomIn size={20} />
           </button>
         </div>
-      </div>
+      </div> 
 
       {/* Center - Map Name */}
       <div className="toolbar-center">
         {currentMap && (
           <div className="map-name">
             <LucideIcons.Brain size={20} />
-            <span>{currentMap.name}</span>
+            <span className="map-name-label">{t('toolbar.name')}</span>
             {isDirty && <div className="dirty-indicator" title={t('dialogs.unsavedChanges.title')}></div>}
           </div>
         )}

@@ -93,7 +93,7 @@ const NodeEditor: React.FC = () => {
           <div className="node-info">
             <div className="info-item">
               <span className="info-label">{t('nodeEditor.info.text')}</span>
-              <span className="info-value">{selectedNode.text}</span>
+              <span className="info-value">{t('nodeEditor.info.selectedNodeText')}</span>
             </div>
             <div className="info-item">
               <span className="info-label">{t('nodeEditor.info.children')}</span>

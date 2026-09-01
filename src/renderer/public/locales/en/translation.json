@@ -43,7 +43,8 @@
       "straight": "Straight lines (click for curved)",
       "toggleTheme": "Toggle Theme (Ctrl+T)",
       "settings": "Settings"
-    }
+    },
+    "name": "Welcome to MMemora"
   },
 
   "dialogs": {
@@ -98,6 +99,7 @@
     },
     "info": {
       "text": "Text:",
+      "selectedNodeText": "Personalize stiles",
       "children": "Children:"
     },
     "actions": {

@@ -16,6 +16,7 @@
   },
 
   "toolbar": {
+    "name": "Benvenido a MMemora",
     "new": "Nuevo",
     "newFromTemplate": "Nuevo desde plantilla",
     "open": "Abrir",
@@ -98,6 +99,7 @@
     },
     "info": {
       "text": "Texto:",
+      "selectedNodeText": "Personaliza estilos",
       "children": "Hijos:"
     },
     "actions": {
