@@ -13,9 +13,10 @@ This document provides a comprehensive overview of MindMapper's technical archit
 5. [Data Flow](#data-flow)
 6. [Security Model](#security-model)
 7. [State Management](#state-management)
-8. [Layout Engine](#layout-engine)
-9. [IPC Communication](#ipc-communication)
-10. [Build System](#build-system)
+8. [Internationalization](#internationalization)
+9. [Layout Engine](#layout-engine)
+10. [IPC Communication](#ipc-communication)
+11. [Build System](#build-system)
 
 ---
 
@@ -44,7 +45,7 @@ The rendering system has been designed around modularity, allowing multiple visu
 ### Core Technologies
 
 | Technology | Version | Purpose |
-|-----------|---------|---------|
+|----|----|----|
 | Electron | 27.x | Desktop application framework |
 | React | 18.x | UI library |
 | TypeScript | 5.x | Type-safe JavaScript |
@@ -54,10 +55,13 @@ The rendering system has been designed around modularity, allowing multiple visu
 ### Key Libraries
 
 | Library | Purpose |
-|---------|---------|
+|----|----|
 | dagre | Graph layout algorithm |
 | lucide-react | Icon set |
 | electron-builder | Application packaging |
+| i18next | Core internationalization framework |
+| react-i18next | React integration for i18next |
+| i18next-http-backend | Lazy loading of translation JSON resources |
 
 ---
 
@@ -67,13 +71,17 @@ The rendering system has been designed around modularity, allowing multiple visu
 mindmapper/
 ├── src/
 │   ├── main/                 # Main process (Node.js/Electron)
-│   │   └── main.ts           # Entry point, window management, IPC handlers
+│   │   └── main.ts           # Entry point, window management, IPC handlers, native menu
 │   │
 │   ├── preload/              # Preload scripts (bridge between main and renderer)
 │   │   └── preload.ts        # IPC API exposure
 │   │
+│   ├── shared/               # Shared types/contracts used by main and renderer
+│   │   └── types/
+│   │       └── menu.ts       # Native menu label IPC contract
+│   │
 │   └── renderer/             # Renderer process (React/TypeScript)
-│       ├── main.tsx          # React entry point
+│       ├── main.tsx          # React entry point, initializes i18n
 │       ├── App.tsx           # Root component
 │       ├── index.html        # main HTML
 │       │
@@ -83,6 +91,7 @@ mindmapper/
 │       │   ├── IconPopover.tsx     # Icon selector pop-up window
 │       │   ├── NodeEditor.tsx      # Right sidebar editor
 │       │   ├── SearchBar.tsx       # Search bar component
+│       │   ├── SettingsModal.tsx   # Language and appearance settings
 │       │   ├── Toolbar.tsx         # Top toolbar
 │       │   └── canvas/                  # SVG canvas for mind map
 │       │       ├── CanvasNode.tsx
@@ -96,6 +105,13 @@ mindmapper/
 │       │
 │       ├── hooks                   # React custom hooks
 │       │   └── useFuzzySearch.ts   # Searching hooks
+│       │
+│       ├── i18n/                  # Internationalization setup
+│       │   └── i18n.ts            # Locale resolution, i18next init, RTL support
+│       │
+│       ├── services/              # Renderer services
+│       │   ├── menuSyncService.ts # Native menu label synchronization
+│       │   └── settingsService.ts # LocalStorage-backed preference persistence
 │       │
 │       ├── store/              # State management
 │       │   └── mindMapStore.ts # Zustand store
@@ -112,7 +128,7 @@ mindmapper/
 │       │   ├── index.ts      # Index tree node
 │       │   ├── theme.ts      # Theme management
 │       │   ├── searcher.ts   # Searching logic
-│       │   ├── edges/                      # Edge logic
+│       │   ├── edges/                    # Edge logic
 │       │   │   ├── edgeInersection.ts      # Unified re-exports
 │       │   │   ├── edgePath.ts             # Calculate curved path
 │       │   │   └── index.ts                # Unified re-exports
@@ -134,10 +150,17 @@ mindmapper/
 │           ├── index.css           # Global styles
 │           ├── NodeEditor.css      # Editor styles
 │           ├── SearchBar.css       # Search bar styles
+│           ├── SettingsModal.css   # Settings modal styles
 │           └── Toolbar.css         # Toolbar styles
 │
-├── dist/                     # Compiled output
+├── dist/                    # Compiled output
 ├── release/                  # Packaged applications
+├── locales/                  # Translation resources
+│   ├── es/
+│   │   └── translation.json  # Spanish translations
+│   └── en/
+│       └── translation.json  # English translations
+│
 ├── docs/
 │   └── issues/               # Issues documentation
 │       ├── ADR-001-issue-6-dynamic-node-sizing.md 
@@ -145,10 +168,11 @@ mindmapper/
 │       ├── ADR-003-issue-12-advance-color-management.md
 │       ├── ADR-004-issue-3-radial-view-refactor.md
 │       ├── ADR-005-issue-1-all-text-underlined-search.md
-│       └── ADR-006-issue-123-node-icon-options.md 
+│       ├── ADR-006-issue-123-node-icon-options.md
+│       └── ADR-007-issue-21-internationalization.md
 ├── package.json              # Dependencies and scripts
 ├── tsconfig.json             # TypeScript configuration
-├── vite.config.ts            # Vite configuration
+├── vite.config.ts            # Vite configuration (serves locale resources)
 └── electron-builder.yml      # Packaging configuration
 ```
 
@@ -165,7 +189,7 @@ mindmapper/
 - Native window management
 - File operations
 - IPC handlers
-- Native menus
+- Native menus (localized through renderer-provided labels)
 - SQLite access
 - Export operations
 
@@ -194,6 +218,7 @@ Only explicitly exposed APIs are accessible from the renderer.
 - State synchronization
 - Layout computation
 - SVG generation
+- Translation resource loading and i18n state
 
 **Security Measures**:
 - Runs in sandboxed environment
@@ -204,29 +229,28 @@ Only explicitly exposed APIs are accessible from the renderer.
 
 The canvas follows a modular architecture introduced during Issue #3.
 
+```text
 Canvas.tsx
-                      │
-        ┌─────────────┴─────────────┐
-        │                           │
+                    │
+        ┌────┴────┐
+        │                    │
 CanvasNodes.tsx              CanvasEdges.tsx
-        │                           │
-        └─────────────┬─────────────┘
-                      │
+        │                    │
+        └────┬────┘
+                    │
                LayoutResult
-                      │
-          ┌───────────┴───────────┐
-          │                       │
+                    │
+          ┌────┴────┐
+          │                    │
  Hierarchical Layout       Radial Layout
-
+```
 
 Responsibilities are clearly separated:
 
 **Canvas**
- 
 Coordinates rendering.
 
 **CanvasNodes**
-
 Draws every node.
 
 Responsibilities:
@@ -239,20 +263,16 @@ Responsibilities:
 - Collapse controls
 
 **CanvasEdges**
-
 Draws every connection.
 
-**Responsibilities**:
-
+Responsibilities:
 - Straight edges
 - Curved edges
 - Arrowheads
 - Border intersection
 
 **Layout Engines**
-
 Responsible only for computing node positions.
-
 No SVG geometry is generated inside layout algorithms.
 
 ---
@@ -261,6 +281,7 @@ No SVG geometry is generated inside layout algorithms.
 
 The application follows a unidirectional rendering pipeline.
 
+```text
 Mind Map Data
        │
        ▼
@@ -270,20 +291,21 @@ Layout Engine
        ▼
 LayoutResult
        │
-       ├───────────────┐
+       ├────┐
        ▼               ▼
 CanvasNodes      CanvasEdges
        │               │
-       └───────┬───────┘
+       └────┬────┘
                ▼
              SVG
                │
                ▼
             Renderer
+```
 
 ### User Action Flow
 
-```
+```text
 User Action
     ↓
 UI Component (React)
@@ -299,7 +321,7 @@ Component Re-render
 
 ### File Operation Flow
 
-```
+```text
 User Action (e.g., Save)
     ↓
 Store Action (saveMap)
@@ -323,7 +345,7 @@ Show Success Message
 
 ### Layout Computation Flow
 
-```
+```text
 Mind Map Data (nodes, edges)
     ↓
 buildGraphLayout() [utils/layout.ts]
@@ -375,6 +397,7 @@ While not explicitly set, the architecture naturally follows CSP principles by i
 - File paths are sanitized
 - User confirmation required for destructive actions
 - No eval() or dynamic code execution
+- Native-menu labels are sent from renderer to main, never executed as code
 
 ---
 
@@ -395,6 +418,7 @@ MindMapper uses Zustand as its global state container.
 - Undo / Redo history
 - Current file
 - Dirty state
+- Current language
 - Global style operations (batch updates across nodes)
 
 Application state is immutable from the UI perspective and updated exclusively through store actions.
@@ -405,18 +429,96 @@ Besides node-specific updates, the store also exposes batch style actions (e.g. 
 
 ---
 
+## Internationalization
+
+MindMapper supports multiple languages through a local-first internationalization stack. The initial supported languages are Spanish (`es`) and English (`en`), with Spanish as the fallback locale.
+
+### Design Principles
+
+- All translation resources are stored locally in the application bundle.
+- Language selection works offline.
+- No user content or application text is sent to a translation service.
+- The renderer owns i18next state; the main process only rebuilds the native menu from a renderer-supplied label payload.
+- Locale preferences are persisted on the local machine via `SettingsService`.
+
+### Locale Resolution
+
+The initial locale is resolved in the following order:
+
+1. A persisted value from `SettingsService` if it is a supported locale.
+2. The operating-system locale returned by the main process through `app:getLocale`, mapped to a supported locale.
+3. Spanish (`es`) as the deterministic fallback.
+
+Once resolved, the locale is persisted locally and reused on subsequent launches.
+
+### Translation Resources
+
+Translation files are located at `locales/{lng}/translation.json` and are loaded lazily by `i18next-http-backend`. Vite serves them during development and bundles them in production so they are available at the same relative path.
+
+Resources cover:
+
+- Common actions and dialog buttons.
+- Toolbar controls, tooltips and labels.
+- Canvas defaults and node editing UI.
+- Search bar UI.
+- Settings modal UI.
+- Native Electron menu labels and About-dialog text.
+
+### Renderer i18n Initialization
+
+`src/renderer/i18n/i18n.ts` centralizes:
+
+- Supported locale definitions and locale resolution.
+- i18next initialization.
+- Lazy resource loading.
+- Document language and direction updates (`document.documentElement.lang` and `document.documentElement.dir`).
+- Native menu label synchronization after initialization and on every `languageChanged` event.
+
+### Local Preference Persistence
+
+`src/renderer/services/settingsService.ts` stores user preferences such as the selected language and theme in `localStorage`. The store reads and writes the language preference through this service.
+
+When the user changes the language:
+
+1. The Zustand store updates its `language` state.
+2. `SettingsService` persists the value.
+3. `i18n.changeLanguage()` is invoked.
+4. The document direction is updated.
+5. `i18next` emits `languageChanged`, which triggers native menu resynchronization.
+
+### Native Menu Synchronization
+
+Because the main process does not share the renderer's i18next state, the renderer resolves the labels needed by the native menu and sends them through IPC.
+
+`src/renderer/services/menuSyncService.ts` builds a `MenuLabels` payload from the current i18next translation and calls `window.electronAPI.menu.setLabels(labels)`. It is invoked on startup and after each language change.
+
+`src/shared/types/menu.ts` defines the exact `MenuLabels` contract shared by main, preload and renderer code.
+
+The main process uses the received labels to rebuild the native Electron menu. Menu commands are broadcast back to the renderer as `menu:*` events, and the renderer registers handlers through the preload bridge to execute the corresponding store or UI actions.
+
+### RTL Support
+
+The document direction is set based on the active locale. A maintained list of RTL languages is checked during initialization and language changes. Current supported locales are left-to-right, but the mechanism is in place for future RTL languages without changing the architecture.
+
+### Adding a New Language
+
+1. Create a new `locales/{lng}/translation.json` file.
+2. Add the locale to the supported-locale list in `src/renderer/i18n/i18n.ts`.
+3. Add a localized label to the settings modal if the language is exposed to users.
+4. Verify all translation keys are present in the new resource.
+5. Verify the native menu rebuilds correctly when the new language is selected.
+
+---
+
 ## Layout Engine
 
 MindMapper currently provides two layout engines.
 
 ### Hierarchical Layout
 
-**Implementation**:
-
-utils/layout/hierarchical.ts
+**Implementation**: `utils/layout/hierarchical.ts`
 
 **Characteristics**:
-
 - Dagre-based
 - Left-to-right organization
 - Dynamic node sizing
@@ -426,12 +528,9 @@ Best suited for structured diagrams.
 
 ### Radial Layout
 
-**Implementation**:
-
-utils/layout/radial.ts
+**Implementation**: `utils/layout/radial.ts`
 
 **Characteristics**:
-
 - Custom implementation
 - Variable node sizes
 - Dynamic radius calculation
@@ -443,10 +542,9 @@ Best suited for brainstorming and concept exploration.
 
 ### Shared Layout Utilities
 
-utils/layout/shared.ts
+`utils/layout/shared.ts`
 
-**Provides**:
-
+Provides:
 - Shared constants
 - Node dimension calculation
 - Common geometry
@@ -456,14 +554,13 @@ utils/layout/shared.ts
 
 Rendering is independent from layout.
 
-    utils/edges/
+```text
+utils/edges/
+├── edgeIntersection.ts
+└── edgePath.ts
+```
 
-    edgeIntersection.ts
-
-    edgePath.ts
-
-**Responsibilities**:
-
+Responsibilities:
 - Border intersection
 - Bézier generation
 - Straight path generation
