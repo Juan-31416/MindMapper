@@ -1,5 +1,8 @@
 // Type definitions for Electron IPC API
 // This file declares the global window.electronAPI interface
+import type { MenuLabels } from "../../shared/types/menu";
+
+
 
 export interface FileOperationResult {
   success: boolean;
@@ -32,32 +35,6 @@ export interface MessageBoxOptions {
   message: string;
   detail?: string;
   cancelId?: number;
-}
-
-export interface MenuLabels {
-  file: string;
-  newMap: string;
-  open: string;
-  save: string;
-  saveAs: string;
-  export: string;
-  exportPDF: string;
-  exportJSON: string;
-  exit: string;
-  edit: string;
-  undo: string;
-  redo: string;
-  view: string;
-  zoomIn: string;
-  zoomOut: string;
-  resetZoom: string;
-  fitToScreen: string;
-  toggleTheme: string;
-  help: string;
-  documentation: string;
-  shortcuts: string;
-  about: string;
-  aboutDetail: string;
 }
 
 export interface ElectronAPI {

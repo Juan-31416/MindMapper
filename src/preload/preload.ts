@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import type { MenuLabels } from '../shared/types/menu';
 
 
 
@@ -37,32 +38,6 @@ export interface MessageBoxOptions {
   message: string;
   detail?: string;
   cancelId?: number;
-}
-
-export interface MenuLabels {
-  file: string;
-  newMap: string;
-  open: string;
-  save: string;
-  saveAs: string;
-  export: string;
-  exportPDF: string;
-  exportJSON: string;
-  exit: string;
-  edit: string;
-  undo: string;
-  redo: string;
-  view: string;
-  zoomIn: string;
-  zoomOut: string;
-  resetZoom: string;
-  fitToScreen: string;
-  toggleTheme: string;
-  help: string;
-  documentation: string;
-  shortcuts: string;
-  about: string;
-  aboutDetail: string;
 }
 
 
@@ -141,21 +116,21 @@ const api: ElectronAPI = {
     getLocale: () => ipcRenderer.invoke('app:getLocale'),
   },
   menu: {
-    onNew: (callback) => ipcRenderer.on('menu:new', () => callback),
-    onOpen: (callback) => ipcRenderer.on('menu:open', () => callback),
-    onSave: (callback) => ipcRenderer.on('menu:save', () => callback),
-    onSaveAs: (callback) => ipcRenderer.on('menu:saveAs', () => callback),
-    onExportPDF: (callback) => ipcRenderer.on('menu:exportPDF', () => callback),
-    onExportJSON: (callback) => ipcRenderer.on('menu:exportJSON', () => callback),
-    onUndo: (callback) => ipcRenderer.on('menu:undo', () => callback),
-    onRedo: (callback) => ipcRenderer.on('menu:redo', () => callback),
-    onZoomIn: (callback) => ipcRenderer.on('menu:zoomIn', () => callback),
-    onZoomOut: (callback) => ipcRenderer.on('menu:zoomOut', () => callback),
-    onResetZoom: (callback) => ipcRenderer.on('menu:resetZoom', () => callback),
-    onFitToScreen: (callback) => ipcRenderer.on('menu:fitToScreen', () => callback),
-    onToggleTheme: (callback) => ipcRenderer.on('menu:toggleTheme', () => callback),
-    onShowShortcuts: (callback) => ipcRenderer.on('menu:showShortcuts', () => callback),
-    setLabels: (labels: any) => ipcRenderer.invoke('menu:setLabels', labels),
+    onNew: (callback) => ipcRenderer.on('menu:new', () => callback()),
+    onOpen: (callback) => ipcRenderer.on('menu:open', () => callback()),
+    onSave: (callback) => ipcRenderer.on('menu:save', () => callback()),
+    onSaveAs: (callback) => ipcRenderer.on('menu:saveAs', () => callback()),
+    onExportPDF: (callback) => ipcRenderer.on('menu:exportPDF', () => callback()),
+    onExportJSON: (callback) => ipcRenderer.on('menu:exportJSON', () => callback()),
+    onUndo: (callback) => ipcRenderer.on('menu:undo', () => callback()),
+    onRedo: (callback) => ipcRenderer.on('menu:redo', () => callback()),
+    onZoomIn: (callback) => ipcRenderer.on('menu:zoomIn', () => callback()),
+    onZoomOut: (callback) => ipcRenderer.on('menu:zoomOut', () => callback()),
+    onResetZoom: (callback) => ipcRenderer.on('menu:resetZoom', () => callback()),
+    onFitToScreen: (callback) => ipcRenderer.on('menu:fitToScreen', () => callback()),
+    onToggleTheme: (callback) => ipcRenderer.on('menu:toggleTheme', () => callback()),
+    onShowShortcuts: (callback) => ipcRenderer.on('menu:showShortcuts', () => callback()),
+    setLabels: (labels: MenuLabels) => ipcRenderer.invoke('menu:setLabels', labels),
   },
   window: {
     onBeforeClose: (callback) => ipcRenderer.on('window:beforeClose', callback),

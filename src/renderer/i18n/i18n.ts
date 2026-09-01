@@ -2,23 +2,18 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import HttpBackend from 'i18next-http-backend';
 import { SettingsService } from '../services/settingsService';
+import { syncNativeMenuLabels } from '../services/menuSyncService';
 
 
 
 // ─────────────────────────────────────────────
-//  Native display names (never translated)
+//  LOCALES
 // ─────────────────────────────────────────────
 
 export const LOCALE_LABELS: Record<SupportedLocale, string> = {
   es: 'Español',
   en: 'English',
 };
-
-
-
-// ─────────────────────────────────────────────
-//  Supported locales
-// ─────────────────────────────────────────────
 
 export const SUPPORTED_LOCALES = ['es', 'en'] as const;
 export type SupportedLocale = typeof SUPPORTED_LOCALES[number];
@@ -53,13 +48,12 @@ async function resolveInitialLocale(): Promise<SupportedLocale> {
     try {
       const osLocale = await window.electronAPI.app.getLocale();
       const resolved = resolveLocale(osLocale);
-  
-      // Persist so we never need IPC again
+
       SettingsService.save({ language: resolved });
   
       return resolved;
     } catch {
-      // 3. IPC failed (e.g. running in browser dev mode) → fall back to Spanish
+      // 3. IPC failed → fall back to Spanish
       return 'es';
     }
 }
@@ -81,25 +75,17 @@ export async function initI18n(): Promise<void> {
       .init({
         lng: locale,
         fallbackLng: 'es',
-  
-        // Namespace
         ns: ['translation'],
         defaultNS: 'translation',
-  
-        // Lazy loading via HTTP backend
         backend: {
           loadPath: '/locales/{{lng}}/{{ns}}.json',
         },
-  
         interpolation: {
           escapeValue: false,
         },
-  
         react: {
           useSuspense: false,
         },
-  
-        // Only log missing keys in development
         saveMissing: import.meta.env.DEV,
         missingKeyHandler: import.meta.env.DEV
           ? (lngs, ns, key) => {
@@ -107,6 +93,9 @@ export async function initI18n(): Promise<void> {
             }
           : undefined,
       });
+
+      syncNativeMenuLabels();
+      i18n.on('languageChanged', syncNativeMenuLabels);
 }
 
 
